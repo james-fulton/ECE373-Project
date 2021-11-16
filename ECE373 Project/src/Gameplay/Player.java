@@ -1,34 +1,30 @@
 package Gameplay;
 
-import Levels.FieldPoint;
+import java.util.ArrayList;
 
-public class Player {
+public class Player extends Entity {
 
-private FieldPoint location;
+//Variables
 private int lives;
-private int totalPoints;
-private int bulletDamage;
 private boolean bulletHit;
-private boolean collision;
+//private Integer bulletDamage;
+private ArrayList<Gun> guns;
+private int selectedGun;
 
+//Constructors
 public Player() {
-	
-	location = new FieldPoint(1.0, 1.0, 90.0); //ship starting location, bottom of the screen in the middle
-	this.lives = 3; // default starter value
-	this.bulletDamage = 1;
-	this.totalPoints = 0;
-	this.collision = false;
-	this.bulletHit = false;
+	super();
+	this.lives = 3;
+	this.points = 0;
+	bulletHit = false;
+	ArrayList<Gun> guns = new ArrayList<Gun>();
+	Gun firstGun = new Gun(70, 10, 7, 1, 20, "M1911");
+	guns.add(firstGun);
+	selectedGun = 0;
+	location.setLocation(100.0, 100.0);
 }
 
-public void setLocation(FieldPoint loc) {
-	location = loc;
-}
-
-public FieldPoint getLocation() {
-	return location;
-}
-
+//Setters & Getters
 public boolean getBulletHit() {
 	return this.bulletHit;
 }
@@ -38,33 +34,49 @@ public void setBulletHit(boolean hit) { // set laser hit with debris
 }
 
 public int getBulletDamage() {
-	return this.bulletDamage;
+	//return guns.get(selectedGun).getDamage();
+	return 10;
 }
 
-public boolean getCollision() {
-	return collision;
-}
 
 public void setCollision(boolean collision) { // set Collision w/ debris
 	this.collision = collision;
-	lives = lives-1;
-}
-public void addPoints(int num) {
-	this.totalPoints += num;
 }
 
-public int getTotalPoints() {
-	return this.totalPoints;
-}
-
-public void removeLives(Zombie target) {
-	this.collision = false; // RESET COLLISION
-	this.lives += target.getCollisionDmg();
+public void changeLives(int life) {
+	this.lives = lives + life;
 }
 
 public int getLives() {
 	return lives;
 }
 
+//Body
+
+//public void setBulletDamage
+//returns state for Game update; -1 is out of bounds or currently using
+//-1 is no change, else value is index of new selected gun
+public int selectGun(int value) {
+	if(value > 0 && value <= guns.size()) {
+		if(value != selectedGun) {
+			selectedGun = value-1;
+			return value-1;
+		}
+	}
+	return -1;
+}
+
+public void addGun(Gun newGun) {
+	guns.add(newGun);
+}
+
+public void removeGun(Gun newGun) {
+	for(int i = 0; i < guns.size(); i++) {
+		if(guns.get(i).getName() == newGun.getName()) {
+			guns.remove(i);
+			return;
+		}
+	}
+}
 
 }

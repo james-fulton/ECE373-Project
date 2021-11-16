@@ -1,59 +1,86 @@
 package Gameplay;
 
 import Levels.FieldPoint;
+import java.lang.Math;
 
-public class Zombie {
-	public int zombieHealth; // 0-3 
-	public int points;  // 0-300 (increments of 100 respective to size);
-	private FieldPoint location;
+public class Zombie extends Entity {
 	
+	//Constructors
 	public Zombie(int diffLevel) {
-		if (diffLevel == 1) {
-			this.zombieHealth = 1; 
-			this.points = 100; 
-		}
-		else if (diffLevel == 2) {
-			this.zombieHealth = 2; 
-			this.points = 200; 
-		}
-		else if (diffLevel == 3) {
-			this.zombieHealth = 3; 
-			this.points = 300; 
-		}
-		this.location = new FieldPoint();
+		super();
+		this.health = this.health * diffLevel;
+		this.points = 100;
+		this.speed = diffLevel;
 	}
 	
-	public int getZombieHealth() {
-		return this.zombieHealth;
-	}
-	
-	
-	public void setZombieHealth(int num) {
-		this.zombieHealth = num;
-	}
-
-	
-	public void setPoint(int num) {
-		this.points = num;
-	}
-	
-	public int getPoints() {
-		return this.points;
-	}
-	
-	public int getCollisionDmg() {
-			return -1; 
-	}
-	
+	//Void
 	public void removeDebris(int health) {
 		// TODO
 	}
-
-	public FieldPoint getLocation() {
-		return this.location;
-	}
+	
+	public void findTarget(FieldPoint target) {
+		double xDif = Math.ceil( target.getX()-2) - Math.ceil( location.getX() );
+		double yDif = Math.ceil( target.getY()+1) - Math.ceil( location.getY() );
+		//double xDif = target.getX() - location.getX() ;
+		//double yDif = target.getY() - location.getY() ;
+		boolean state = false;
+		double angle = 0;
 		
-	public void setLocation(FieldPoint targetLocation) {
-		this.location = targetLocation;
+		
+		
+		if( Math.sqrt(xDif*xDif + yDif*yDif) < 12) {
+			state = true;
+		}
+		
+		if(yDif == 0) {
+			if(xDif < 0) {
+				angle = 180;
+				if(state) { angle = 90; }
+			}
+			else {
+				angle = 0;
+				if(state) { angle = 270; }
+			}
+		}
+		if(xDif == 0) {
+			if(yDif < 0) {
+				angle = 270;
+				if(state) { angle = 180; }
+			}
+			else{
+				angle = 90;
+				if(state) { angle = 0; }
+			}
+		}
+		
+		
+		if(yDif > 0 && xDif > 0) {
+			angle = Math.toDegrees(Math.atan(yDif/xDif));
+			if(state) {
+				angle = 270 + angle;
+			}
+		}
+	    if(yDif > 0 && xDif < 0) {
+	    	angle = 90 + Math.toDegrees(Math.atan(xDif/yDif * -1));
+	    	if(state) {
+	    		angle = angle - 90;
+	    	}
+	    }
+	    if(yDif < 0 && xDif < 0) {
+	    	angle = 180 + Math.toDegrees(Math.atan(yDif/xDif));
+	    	if(state) {
+	    		angle = angle - 90;
+	    	}
+	    }
+	    if(yDif < 0 && xDif > 0) {
+	    	angle = 270 + Math.toDegrees(Math.atan(xDif/yDif * -1));
+	    	if(state) {
+	    		angle = angle - 90;
+	    	}
+	    }
+
+		System.out.println("State: " + angle);
+		location.setAngleView(angle);
 	}
+
 }
