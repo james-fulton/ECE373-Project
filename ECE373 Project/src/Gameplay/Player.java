@@ -32,9 +32,9 @@ public Player() {
 	use = false;
 	lookAngle = 0.0;
 	this.guns = new ArrayList<Gun>();
-	Gun firstGun = new Gun(6);
+	Gun firstGun = new Gun(0);
 	//firstGun.sf_use_ignoreammo(1);
-	Gun secondGun = new Gun(0);
+	Gun secondGun = new Gun(1);
 	//secondGun.sf_use_ignoreammo(1);
 	guns.add(firstGun);
 	guns.add(secondGun);
