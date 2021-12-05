@@ -132,7 +132,7 @@ public class GameLevel extends Level{
 			}
 			
 			if(timeBetweenBullet != 0) {
-				System.out.println("Timeatnextbullet: " + timeAtNextBullet + " \\\\ " + clock.millis()  + " \\\\ " + timeBetweenBullet   );  
+				//System.out.println("Timeatnextbullet: " + timeAtNextBullet + " \\\\ " + clock.millis()  + " \\\\ " + timeBetweenBullet   );  
 				if(clock.millis() >= timeAtNextBullet) {
 					player.setGunFired(false); 
 				}
