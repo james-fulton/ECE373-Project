@@ -127,6 +127,9 @@ public class GameLevel extends Level{
 						maxZombies++;
 					}
 				}
+				if(round % 7 == 0) {
+					maxAmmo();
+				}
 				playRoundMusic();
 				zombiesKilled = 0;
 			}
@@ -222,12 +225,31 @@ public class GameLevel extends Level{
 			
 			double speedMultiplier = 1;
 			if(round > 8) {
-				if(ThreadLocalRandom.current().nextInt(0, 100 + 1) > 60) {
+				int chanceOfMethZombie = ThreadLocalRandom.current().nextInt(0, 100 + 1); //nazis actually used meth lol
+				if(chanceOfMethZombie > 60 && 75 > chanceOfMethZombie) { //realistically should be 80% but game would be too hard haha
 					speedMultiplier = 2;
 				}
+				else if(speedMultiplier < 2) {
+					if(round > 13) {
+						speedMultiplier += round/10;
+					}
+					else if(round > 99) {
+						speedMultiplier += round/100;
+					}
+					else {
+						speedMultiplier = 1.1;
+					}
+				}
+			}
+			else if(round < 3) {
+				speedMultiplier = 0.8;
+			}
+			else if(round < 6) {
+				speedMultiplier = 0.9;
 			}
 			
-			double randomSpeed = ThreadLocalRandom.current().nextDouble(speedMultiplier * difficulty-0.7, speedMultiplier * difficulty + 0.1 + 1);
+			double randomSpeed = ThreadLocalRandom.current().nextDouble(speedMultiplier * difficulty-0.7, speedMultiplier * difficulty);
+			System.out.println("Speed: " + randomSpeed);
 			Zombie tempZombie = new Zombie(game.getDifficulty(), randomSpeed * 0.7);
 			
 			FieldPoint p1 = new FieldPoint(xcoord, ycoord, angle);
@@ -272,7 +294,7 @@ public class GameLevel extends Level{
 				
 				//ambient & taunt sound
 				if(!ot.getPlayGrowl()) {
-					if(ot.getLocation().getDistance(player.getLocation()) < 55) {
+					if(ot.getLocation().getDistance(player.getLocation()) < 60 && round < 12) {
 						int randomNum = ThreadLocalRandom.current().nextInt(48, 54 + 1);
 						Clip clip = audioSource.getAudioClip(2, randomNum);
 						ot.setGrowlLength(audioSource.getAudioLength(2, randomNum)); 
@@ -688,6 +710,10 @@ public class GameLevel extends Level{
 	
 	private void playRoundMusic() {
 		
+	}
+	
+	public void maxAmmo() {
+		player.maxAmmo();
 	}
 	
 	}

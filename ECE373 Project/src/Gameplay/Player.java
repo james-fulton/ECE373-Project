@@ -32,9 +32,9 @@ public Player() {
 	use = false;
 	lookAngle = 0.0;
 	this.guns = new ArrayList<Gun>();
-	Gun firstGun = new Gun(0);
+	Gun firstGun = new Gun(1);
 	//firstGun.sf_use_ignoreammo(1);
-	Gun secondGun = new Gun(1);
+	Gun secondGun = new Gun(3);
 	//secondGun.sf_use_ignoreammo(1);
 	guns.add(firstGun);
 	guns.add(secondGun);
@@ -187,6 +187,12 @@ public void removeGun(Gun newGun) {
 
 public void addPoints(int points) {
 	this.points += points;
+}
+
+public void maxAmmo() {
+	for(int i = 0; i < guns.size(); i++) {
+		guns.get(i).maxAmmo();
+	}
 }
 
 }
