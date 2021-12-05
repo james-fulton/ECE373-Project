@@ -3582,7 +3582,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_RELOAD_GAIN, clip1);
+			setVolume(PLAYER_RELOAD_GAIN * (float)1.4, clip1);
 			weaponSounds.add(clip1);
 			
 			//play
@@ -3612,7 +3612,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_RELOAD_GAIN, clip1);
+			setVolume(PLAYER_RELOAD_GAIN * (float)1.4, clip1);
 			weaponSounds.add(clip1);
 			
 			//play
