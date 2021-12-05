@@ -4,14 +4,45 @@ import Levels.FieldPoint;
 import java.lang.Math;
 
 public class Zombie extends Entity {
-	
+	//Variables
+	private boolean playGrowl;
+	private boolean growlTimer;
+	private float growlLength;
+
 	//Constructors
-	public Zombie(int diffLevel) {
+	public Zombie(double diffLevel, double speed) {
 		super();
-		this.health = this.health * diffLevel;
-		this.points = 100;
-		this.speed = diffLevel;
+		this.health = (int)(50 * diffLevel);
+		this.points = 50;
+		this.speed = speed;
 	}
+	
+	
+	//Setters & Getters
+	public boolean getPlayGrowl() {
+		return playGrowl;
+	}
+
+	public void setPlayGrowl(boolean playGrowl) {
+		this.playGrowl = playGrowl;
+	}
+
+	public boolean getGrowlTimer() {
+		return growlTimer;
+	}
+
+	public void setGrowlTimer(boolean growlTimer) {
+		this.growlTimer = growlTimer;
+	}
+
+	public float getGrowlLength() {
+		return growlLength;
+	}
+
+	public void setGrowlLength(float growlLength) {
+		this.growlLength = growlLength;
+	}
+	
 	
 	//Void
 	public void removeDebris(int health) {
@@ -19,8 +50,8 @@ public class Zombie extends Entity {
 	}
 	
 	public void findTarget(FieldPoint target) {
-		double xDif = Math.ceil( target.getX()-2) - Math.ceil( location.getX() );
-		double yDif = Math.ceil( target.getY()+1) - Math.ceil( location.getY() );
+		double xDif = Math.ceil( target.getX()) - Math.ceil( location.getX() ); //-2
+		double yDif = Math.ceil( target.getY()) - Math.ceil( location.getY() ); //+1
 		//double xDif = target.getX() - location.getX() ;
 		//double yDif = target.getY() - location.getY() ;
 		boolean state = false;
@@ -79,7 +110,7 @@ public class Zombie extends Entity {
 	    	}
 	    }
 
-		System.out.println("State: " + angle);
+		//System.out.println("State: " + angle);
 		location.setAngleView(angle);
 	}
 

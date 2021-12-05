@@ -31,6 +31,10 @@ public class FieldPoint {
 		this.angleView = old.getAngleView();
 	}
 	
+	public double getDistance(FieldPoint other) {
+		return Math.sqrt( Math.pow(x-other.getX(), 2) + Math.pow(y-other.getY(), 2));
+	}
+	
 	public double getX() {
 		return x;
 	}

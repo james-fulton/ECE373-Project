@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Game{
 	private int frameX;
 	private int frameY;
-	private int difficulty;
+	private double difficulty;
 	private int score; 
 	private ArrayList<HighScore> highScores;
 	
@@ -32,7 +32,7 @@ public class Game{
 	public Game() {
 		frameX = 600;
 		frameY = 450; 
-		difficulty =1;
+		difficulty = 1;
 		score = 0; 
 		highScores = new ArrayList<HighScore>();
 		
@@ -75,6 +75,7 @@ public class Game{
 		
 		frame.getContentPane().add(panel);
 		frame.pack();
+		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -107,7 +108,7 @@ public class Game{
 				handleDifficulty();
 			}
 			else if(e.getSource() == play) {
-				GameLevelWindow window =new GameLevelWindow("Zombies", getGame());
+				GameLevelWindow window = new GameLevelWindow("Zombies", getGame());
 				
 			}
 			else if(e.getSource() == scores) {
@@ -154,7 +155,7 @@ public class Game{
 			p.add(test);
 			Tutorial.add(p);
 			Tutorial.setSize(300, 300);
-			Tutorial.show();
+			//Tutorial.show();
 		}
 	}
 	
@@ -163,7 +164,7 @@ public class Game{
 	}
 	
 	public JFrame getFrame() {
-		return this.frame;
+		return Game.frame;
 	}
 	
 	public void printScores() {		
@@ -192,7 +193,7 @@ public class Game{
 		}
 	}
 	
-	public void setDifficulty(int skill) {
+	public void setDifficulty(double skill) {
 		this.difficulty = skill;
 	}
 	
@@ -204,7 +205,7 @@ public class Game{
 		return this.frameY;
 	}
 	
-	public int getDifficulty() {
+	public double getDifficulty() {
 		return this.difficulty;
 	}
 	
@@ -217,7 +218,12 @@ public class Game{
 	}
 	
 	public JPanel getPanel() {
-		return this.panel;
+		return Game.panel;
+	}
+	public void setFrame(int x, int y) {
+		frameX = x;
+		frameY = y;
+		frame.setSize(x, y);
 	}
 	
 }
