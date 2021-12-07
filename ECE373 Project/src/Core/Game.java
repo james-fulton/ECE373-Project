@@ -150,7 +150,18 @@ public class Game{
 		}
 		private void handleTutorial() {
 			JFrame Tutorial =  new JFrame("Tutorial");
-			JLabel test = new JLabel("Here are the tutorial instructions");
+			JLabel test = new JLabel("<html><body>Press W - Move up<br>"
+					+ "Press A - Move right"
+					+ "<br>Press A - Move left"
+					+ "<br>Press D - Move right"
+					+ "<br>Press S - Move down"
+					+ "<br>Arrow Key Up - Change direction up"
+					+ "<br>Arrow Key Left - Change direction left"
+					+ "<br>Arrow Key Right - Change direction right"
+					+ "<br>Arrow Key Down - Change direction down"
+					+ "<br>Press Spacebar to fire gun"
+					+ "<br>Press R to reload your gun"
+					+ "<br>Press 1 to change gun<html>");
 			JPanel p = new JPanel();
 			p.add(test);
 			Tutorial.add(p);
