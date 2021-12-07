@@ -77,11 +77,11 @@ public class GameLevelWindow extends JFrame{
 		
 		setVisible(true);
 		
-		try { player = ImageIO.read(new File("images/player.png"));}
+		try { player = ImageIO.read(new File("images/playerright.png"));}
 		catch (IOException e) { System.out.println("ERROR: player image not found"); }
 		try { zombie = ImageIO.read(new File("images/zombie.png")); } 
 		catch (IOException e) { System.out.println("ERROR: zombie image not found"); }
-		try { bullet = ImageIO.read(new File("images/bullet.png"));}
+		try { bullet = ImageIO.read(new File("images/bulletright.png"));}
 		catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
 	}
 	
@@ -127,6 +127,7 @@ public class GameLevelWindow extends JFrame{
 			Bullet lt = itr2.next();
 			tempPT = lt.getLocation();
 			g.drawImage(bullet, (int)Math.ceil(tempPT.getX() - bullet.getWidth()/4), (int)Math.ceil(tempPT.getY() - bullet.getHeight()/4), null);
+			
 			/*g.setColor(Color.RED);
 			g.fillOval((int)tempPT.getX(), (int)tempPT.getY(), 10, 10);
 			*/
@@ -162,19 +163,53 @@ public class GameLevelWindow extends JFrame{
 			if(key == KeyEvent.VK_D) { keyWASD = keyWASD | 0b0001; }
 			
 			//look
-			if(key == KeyEvent.VK_UP) { keyArrow = keyArrow | 0b1000; }
-			if(key == KeyEvent.VK_LEFT) { keyArrow = keyArrow | 0b0100; }
-			if(key == KeyEvent.VK_DOWN) { keyArrow = keyArrow | 0b0010; }
-			if(key == KeyEvent.VK_RIGHT) { keyArrow = keyArrow | 0b0001; }
+			if(key == KeyEvent.VK_UP) 
+			{ 
+			keyArrow = keyArrow | 0b1000; 
+			try { 
+				player = ImageIO.read(new File("images/playerup.png"));}
+				catch (IOException e) { System.out.println("ERROR: player image not found");
+				}
+			try { 
+				bullet = ImageIO.read(new File("images/bulletup.png"));}
+				catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
+			}
+
+		
+		
+			if(key == KeyEvent.VK_LEFT) { 
+				keyArrow = keyArrow | 0b0100; 
+				try { player = ImageIO.read(new File("images/playerleft.png"));}
+				catch (IOException e) { System.out.println("ERROR: player image not found"); }
+				try { 
+					bullet = ImageIO.read(new File("images/bulletleft.png"));}
+					catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
+				}
+			if(key == KeyEvent.VK_DOWN) { 
+				keyArrow = keyArrow | 0b0010;
+				try { player = ImageIO.read(new File("images/playerdown.png"));}
+				catch (IOException e) { System.out.println("ERROR: player image not found"); }
+				try { 
+					bullet = ImageIO.read(new File("images/bulletdown.png"));}
+					catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
+			}
+			if(key == KeyEvent.VK_RIGHT) { 
+				keyArrow = keyArrow | 0b0001; 
+				try { player = ImageIO.read(new File("images/playerright.png"));}
+				catch (IOException e) { System.out.println("ERROR: player image not found"); }
+				try { 
+					bullet = ImageIO.read(new File("images/bulletright.png"));}
+					catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
+			}
 			
 			//interact
-			if(key == KeyEvent.VK_1) { keyAux = keyAux | 0b10000; }
+			if(key == KeyEvent.VK_1) { keyAux = keyAux | 0b10000;}
 			if(key == KeyEvent.VK_SPACE) { keyAux = keyAux | 0b01000; }
 			if(key == KeyEvent.VK_F) { keyAux = keyAux | 0b00100; }
 			if(key == KeyEvent.VK_SHIFT) { keyAux = keyAux | 0b00010; }
 			if(key == KeyEvent.VK_R) { keyAux = keyAux | 0b00001; }
 			
-			 //System.out.println("PMove: " + keyWASD);
+			 //System.out.println("PMove: " + keyWASD);sw
 			 //System.out.println("PLook: " + keyArrow);
 			 //System.out.println("PInteract: " + keyAux);
 		}
@@ -201,6 +236,7 @@ public class GameLevelWindow extends JFrame{
 			if(key == KeyEvent.VK_F) { keyAux = keyAux & 0b11011; }
 			if(key == KeyEvent.VK_SHIFT) { keyAux = keyAux & 0b11101; }
 			if(key == KeyEvent.VK_R) { keyAux = keyAux & 0b11110; }
+			
 		 }
 	}
 
