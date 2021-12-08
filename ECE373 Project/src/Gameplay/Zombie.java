@@ -2,23 +2,57 @@ package Gameplay;
 
 import Levels.FieldPoint;
 import java.lang.Math;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Zombie extends Entity {
 	//Variables
 	private boolean playGrowl;
 	private boolean growlTimer;
 	private float growlLength;
+	private int identifier;
+	private boolean hit;
+	private boolean missHit;
+	private float hitTime;
 
 	//Constructors
-	public Zombie(double diffLevel, double speed) {
+	public Zombie(double diffLevel, double speed, int identifier) {
 		super();
-		this.health = (int)(50 * diffLevel);
+		this.maxHealth = (int)(50 * diffLevel);
+		this.health = this.maxHealth;
 		this.points = 50;
 		this.speed = speed;
+		this.meleeDamage = 25;
+		this.identifier = identifier;
+		hit = false;
+		missHit = false;
+		playGrowl = false;
+		growlTimer = false;
+		growlLength = 1;
 	}
-	
+
 	
 	//Setters & Getters
+	public void setHit(boolean hit) {
+		this.hit = hit;
+	}
+	public boolean getHit() {
+		return hit;
+	}
+	public void setMissHit(boolean missHit) {
+		this.missHit = missHit;
+	}
+	public boolean getMissHit() {
+		return missHit;
+	}
+	
+	public void getIdentifier(int identifier) {
+		this.identifier = identifier;
+	}
+	
+	public int getIdentifer() {
+		return identifier;
+	}
 	public boolean getPlayGrowl() {
 		return playGrowl;
 	}
@@ -50,68 +84,25 @@ public class Zombie extends Entity {
 	}
 	
 	public void findTarget(FieldPoint target) {
-		double xDif = Math.ceil( target.getX()) - Math.ceil( location.getX() ); //-2
-		double yDif = Math.ceil( target.getY()) - Math.ceil( location.getY() ); //+1
-		//double xDif = target.getX() - location.getX() ;
-		//double yDif = target.getY() - location.getY() ;
-		boolean state = false;
-		double angle = 0;
-		
-		
-		
-		if( Math.sqrt(xDif*xDif + yDif*yDif) < 12) {
-			state = true;
-		}
-		
-		if(yDif == 0) {
-			if(xDif < 0) {
-				angle = 180;
-				if(state) { angle = 90; }
-			}
-			else {
-				angle = 0;
-				if(state) { angle = 270; }
-			}
-		}
-		if(xDif == 0) {
-			if(yDif < 0) {
-				angle = 270;
-				if(state) { angle = 180; }
-			}
-			else{
-				angle = 90;
-				if(state) { angle = 0; }
-			}
-		}
-		
-		
-		if(yDif > 0 && xDif > 0) {
-			angle = Math.toDegrees(Math.atan(yDif/xDif));
-			if(state) {
-				angle = 270 + angle;
-			}
-		}
-	    if(yDif > 0 && xDif < 0) {
-	    	angle = 90 + Math.toDegrees(Math.atan(xDif/yDif * -1));
-	    	if(state) {
-	    		angle = angle - 90;
-	    	}
-	    }
-	    if(yDif < 0 && xDif < 0) {
-	    	angle = 180 + Math.toDegrees(Math.atan(yDif/xDif));
-	    	if(state) {
-	    		angle = angle - 90;
-	    	}
-	    }
-	    if(yDif < 0 && xDif > 0) {
-	    	angle = 270 + Math.toDegrees(Math.atan(xDif/yDif * -1));
-	    	if(state) {
-	    		angle = angle - 90;
-	    	}
-	    }
-
-		//System.out.println("State: " + angle);
-		location.setAngleView(angle);
+		location.findAngle(target, true, true);
 	}
+	
+	//return is if dead
+	public boolean receivedDamage(int increment) {
+		health -= increment;
+		if(health <= 0) { return true; }
+		return false;
+	}
+	
+	public void hitPlayer(Timer auxTimer) {
+		if(!hit) {
+			auxTimer.schedule(new TimerTask() {
+				@Override
+				public void run() { hit = false; }
+				}, (long)(480));
+		}
+		hit = true;
+	}
+	
 
 }

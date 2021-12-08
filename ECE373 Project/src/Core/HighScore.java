@@ -2,16 +2,29 @@ package Core;
 
 public class HighScore {
 	private String playerName;
-	private int score;
+	private int points;
+	private int rounds;
+	private int kills;
 	
 	public HighScore() {
 		playerName = "player";
-		score = 0;
+		points = 0;
+		rounds = 0;
+		kills = 0;
 	}
 	
 	public HighScore(String name, int score) {
 		this.playerName = name;
-		this.score = score;
+		this.points = score;
+		rounds = 0;
+		kills = 0;
+	}
+	
+	public HighScore(String name, int rounds, int points, int kills) {
+		this.playerName = name;
+		this.points = points;
+		this.rounds = rounds;
+		this.kills = kills;
 	}
 	
 	public void setName(String name) {
@@ -19,7 +32,7 @@ public class HighScore {
 	}
 	
 	public void setScore(int score) {
-		this.score = score;
+		this.points = score;
 	}
 	
 	public String getName() {
@@ -27,7 +40,49 @@ public class HighScore {
 	}
 	
 	public int getScore() {
-		return this.score;
+		return this.points;
+	}
+	
+	public int getRounds() {
+		return rounds;
+	}
+	
+	public int getKills() {
+		return kills;
+	}
+	
+	public int compareScores(int newRounds, int newPoints, int newKills) {
+		if(newRounds > rounds) {
+			if(newPoints > points) {
+				if(newKills > kills) {
+					return 6;
+				}
+				return 5;
+			}
+			return 4;
+		}
+		else if(newRounds == rounds) {
+			if(newPoints > points) {
+				if(newKills > kills) {
+					return 3;
+				}
+				return 2;
+			}
+			else if(newPoints == points) {
+				if(newKills > kills) {
+					return 1;
+				}
+				else if(newKills == kills) {
+					return 0;
+				}
+			}
+		}
+		return -1;
+	}
+	
+	public String toString() {
+		String output = playerName + " | Points: " + Integer.toString(points) + " | Rounds: " + Integer.toString(rounds) + " | Kills: " + Integer.toString(kills);
+		return output;
 	}
 }
 

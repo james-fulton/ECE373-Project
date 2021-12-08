@@ -7,14 +7,18 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.awt.image.BufferedImage;
 import java.lang.Math;
 import java.time.Clock;
 
 import javax.sound.sampled.Clip;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import Core.AudioHandler;
 import Core.Game;
@@ -34,20 +38,22 @@ public class GameLevel extends Level{
 	private String playerName;
 	private ArrayList<Zombie> zombies;
 	private ArrayList<Bullet> bullets;
-	private int maxZombies;
-	private boolean isPaused, gameOver;
-	private int round, zombiesKilled;
+	private int maxZombies, zombiesSpawnOnRound, zombiesOnScreen;
+	private final AtomicBoolean pause = new AtomicBoolean(false);
+	private final AtomicBoolean changeGun = new AtomicBoolean(false);
+	private boolean gameOver;
+	private int round, zombiesKilled, totalZombies, maxZombiesOnScreen;
 	private double difficulty;
+	private boolean incrementRound;
 	
 	//Audio
 	private Clip reloadAudio;
 	private Clip fireAudio;
 	private long timeBetweenBullet, timeAtNextBullet;
+	private long timeAtNextPlayerDamage;
 	private TimerTask reloadTimer;
 	private TimerTask bulletTimer;
 	private AudioHandler audioSource;
-	private ArrayList<ArrayList> audioClips;
-	private ArrayList<ArrayList> audioLengths;
 	private Timer auxTimer;
 	
 	//Clock
@@ -57,11 +63,15 @@ public class GameLevel extends Level{
 	//Constructors
 	public GameLevel(Game game, String name) {
 		super(game, name);
+		incrementRound = false;
 		round = 1;
 		zombiesKilled = 0;
+		zombiesSpawnOnRound = 0;
+		zombiesOnScreen = 0;
+		totalZombies = 0;
 		upperX = game.getFrameX();
 		upperY = game.getFrameY();     
-		player = new Player();
+		player = new Player(upperX/2, upperY/2);
 		timeBetweenBullet = 0;
 		timeAtNextBullet = 0;
 		zombies = new ArrayList<Zombie>();
@@ -70,8 +80,6 @@ public class GameLevel extends Level{
 		generateLevel();
 		
 		audioSource = new AudioHandler();
-		audioClips = audioSource.getAudioClips();
-		audioLengths = audioSource.getAudioLengths();
 		auxTimer = new Timer();
 		reloadAudio = null;
 		clock = Clock.systemDefaultZone();
@@ -86,6 +94,9 @@ public class GameLevel extends Level{
 		return zombies;
 	}
 	
+	public boolean isGameOver() {
+		return gameOver;
+	}
 	
 	public ArrayList<Bullet> getBullets(){
 		return bullets;
@@ -96,15 +107,193 @@ public class GameLevel extends Level{
 	}
 	
 	public void exitGame() {
-		JPanel myPanel = new JPanel();
-		myPanel.add(new JLabel ("Game over!"));
-		JOptionPane.showMessageDialog(myPanel, "<HTML><center>Game over<BR> Player score: "+player.getPoints()+"<HTML><center>");
-		playerName = JOptionPane.showInputDialog("Enter Player Name: ", "Hall of fame");
-		game.getFrame().setLocationRelativeTo(null);
-		game.getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		game.getFrame().setVisible(true);
-		HighScore hs1 = new HighScore(playerName, player.getPoints());
-		game.getHighScores().add(hs1);
+		audioSource.getAudioClip(0, 0).setFramePosition(0);
+		audioSource.getAudioClip(0, 0).stop();
+		audioSource.getAudioClip(4, 0).setFramePosition(0);
+		audioSource.getAudioClip(4, 0).start();
+		
+		JOptionPane gameOverScreen = new JOptionPane(JOptionPane.PLAIN_MESSAGE);
+		gameOverScreen.setMessage("Round: " + round + "\nPoints: " + player.getPoints() + "\nKills: " + (totalZombies - zombies.size()));
+		JDialog dialog = gameOverScreen.createDialog(null, "Game Over");
+		
+		auxTimer.schedule(new TimerTask() {
+			@Override
+			public void run() { if(dialog.isVisible()) { dialog.dispose(); }  }
+			}, (long)(audioSource.getAudioLength(4, 0) * 1000));
+		
+		dialog.setLocationRelativeTo(null);
+		dialog.setVisible(true);
+		
+		//JOptionPane.showMessageDialog(null, "Round: " + round + "\nPoints: " + player.getPoints(), "Game Over", JOptionPane.PLAIN_MESSAGE);
+		//playerName = JOptionPane.showInputDialog("Player Name: ", "Game Over");
+		
+		int position = game.isHighScore(round, player.getPoints(), totalZombies - zombies.size());
+		if((position < 1 && game.getHighScores().size() < 5) || position > 0) {
+		
+			JTextField newName = new JTextField();
+			Object[] message = { "High Scores:\n" + game.scoreToString(position, round, player.getPoints(), totalZombies - zombies.size()), "Name: ", newName };
+			int option = JOptionPane.showConfirmDialog(null,  message, "Game Over", JOptionPane.OK_CANCEL_OPTION);
+			if(option == JOptionPane.OK_OPTION) {
+				HighScore hs1 = new HighScore(newName.getText(), round, player.getPoints(), totalZombies - zombies.size());
+				if(game.getHighScores().size() < 5) {
+					if(position == -1) { position++; }
+					game.getHighScores().add(position, hs1);
+				}
+				else {
+					game.getHighScores().add(position, hs1);
+					game.getHighScores().remove(0);
+				}
+			}
+		}
+		
+		audioSource.endAudio();
+		zombies.clear();
+		bullets.clear();
+		player.clearGuns();
+		
+		//game.getFrame().setLocationRelativeTo(null);
+		//game.getFrame().setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		//game.getFrame().setVisible(true);
+	}
+	
+	public void pauseGame() {
+		if(pause.get()) {
+			audioSource.getAudioClip(0, 0).stop(); //pause ambient sound
+			
+			String[] buttons = { "Continue Game", "Quit", "Reset Game", "Options", "No" };
+			
+			//int option = JOptionPane.showConfirmDialog(null,  "Continue Game?", "Game Paused", JOptionPane.OK_CANCEL_OPTION);
+			int option = JOptionPane.showOptionDialog(null, "Having Fun?", "Game Paused", 
+					JOptionPane.DEFAULT_OPTION, JOptionPane.DEFAULT_OPTION, null, buttons, null);
+			
+			switch(option) {
+				case 0: resumeGame(); break;
+				case 1: {
+					int quit = JOptionPane.showConfirmDialog(null,  "Are you sure you want to quit?", "Quit", JOptionPane.YES_NO_OPTION);
+					if(quit == JOptionPane.YES_OPTION) { gameOver = true; break; }
+					else { resumeGame(); break; }
+				}
+				case 2: resetGame(); break;
+				case 3: openOptions(); break;
+				case 4: {
+					String[] funnyButtons = { "Yes", "Yes" };
+					int funnyOption = JOptionPane.showOptionDialog(null, "You are having fun", "Game Paused", 
+							JOptionPane.ERROR_MESSAGE, JOptionPane.ERROR_MESSAGE, null, funnyButtons, null);
+					resumeGame();
+					break;
+				}
+				default: resumeGame();
+			}
+		}
+		else {
+			resumeGame();
+		}
+	}
+	
+	public void openOptions() {
+		String[] buttons = { "Go Back", "Show Controls", "Make Game Easier", "Terminal" };
+		
+		//int option = JOptionPane.showConfirmDialog(null,  "Continue Game?", "Game Paused", JOptionPane.OK_CANCEL_OPTION);
+		int option = JOptionPane.showOptionDialog(null, "Game Options", "Game Paused", 
+				JOptionPane.DEFAULT_OPTION, JOptionPane.DEFAULT_OPTION, null, buttons, null);
+		
+		if(option == 0) {
+			pauseGame();
+		}
+		else if(option == 1) {
+			JOptionPane.showMessageDialog(null, "Pause: Esc \nMove: WASD \nLook: Arrow Keys \nShoot: Space bar \nSwitch Weapon: 1 \nReload: R \nUse: F \nSprint: Shift", "Game Controls", JOptionPane.INFORMATION_MESSAGE);
+			openOptions();
+		}
+		else if(option  == 2) {
+			
+			double previous = difficulty;
+			if(difficulty <= 1) {
+				JOptionPane.showMessageDialog(null, "Cannot reduce difficulty, it is too low. Play Better", "Make Game Easier", JOptionPane.WARNING_MESSAGE);
+				pauseGame();
+				return;
+			}
+			if(difficulty > 1) { difficulty -= 0.1; }
+			else if(difficulty > 2) { difficulty -= 1.0; }
+			
+			String[] diffButtons = { "Go Back", "Continue Game"};
+			int difOption = JOptionPane.showOptionDialog(null, "Game difficulty reduced to " + difficulty + " from " + previous, "Make Game Easier", 
+					JOptionPane.DEFAULT_OPTION, JOptionPane.DEFAULT_OPTION, null, diffButtons, null);
+			if(difOption == 0) { openOptions(); return; }
+			else if(difOption == 1) { resumeGame(); return; }
+		}
+		else if(option == 3) { openTerminal(); return; }
+		else { pauseGame(); return; }
+	}
+	
+	private void openTerminal() {
+		JTextField newCommand = new JTextField();
+		Object[] message = { "Enter Command: " , newCommand, };
+		
+		int comOption = JOptionPane.showConfirmDialog(null,  message, "Terminal", JOptionPane.OK_CANCEL_OPTION);
+		if(comOption == JOptionPane.OK_OPTION) {
+			if(newCommand.getText().equals("sf_use_ignoreammo 0")) { player.sf_use_ignoreammo(0); resumeGame(); return; }
+			else if(newCommand.getText().equals("sf_use_ignoreammo 1")) { player.sf_use_ignoreammo(1); resumeGame(); return; }
+			else if(newCommand.getText().equals("god")) { player.godMode(); resumeGame(); return; }
+			else if(newCommand.getText().equals("setspeed 8.0")) { player.setSpeed(8.0); resumeGame(); return; }
+			else if(newCommand.getText().equals("give all")) {player.giveAll(); setupNewGun(); resumeGame(); return; }
+			else if(newCommand.getText().equals("help") || newCommand.getText().equals("-h") || newCommand.getText().equals("/h")) {
+				JOptionPane.showMessageDialog(null, "Hint: sf_use_ignoreammo (int state)", "Terminal", JOptionPane.INFORMATION_MESSAGE);
+				openTerminal();
+				return;
+			}
+			else {
+				JOptionPane.showMessageDialog(null, "Unknown command: " + newCommand.getText(), "Terminal", JOptionPane.WARNING_MESSAGE);
+				openTerminal();
+				return;
+			}
+		}
+		else { openOptions(); return; }
+	}
+	
+	public void resetGame() {
+		String[] buttons = {"Go Back", "1: I'm to young to die", "2: Hurt me plenty", "3: You will not survive", "Resume Game"};
+		
+		//int option = JOptionPane.showConfirmDialog(null,  "Continue Game?", "Game Paused", JOptionPane.OK_CANCEL_OPTION);
+		int diffOption = JOptionPane.showOptionDialog(null, "Select a difficulty", "Reset Game", 
+				JOptionPane.DEFAULT_OPTION, JOptionPane.DEFAULT_OPTION, null, buttons, null);
+		if(diffOption == 0) { pauseGame(); return; }
+		else if(diffOption == 4) { resumeGame(); return; }
+		
+		zombies.clear();
+		bullets.clear();
+		player.clearGuns();
+		
+		game.setDifficulty(diffOption);
+		difficulty = diffOption;
+		incrementRound = false;
+		round = 1;
+		zombiesKilled = 0;
+		zombiesSpawnOnRound = 0;
+		zombiesOnScreen = 0;
+		totalZombies = 0;   
+		player = new Player(upperX/2, upperY/2);
+		timeBetweenBullet = 0;
+		timeAtNextBullet = 0;
+		difficultySet();
+		generateLevel();
+		
+		reloadAudio = null;
+		setupNewGun();
+		resumeGame();
+	}
+	
+	public void resumeGame() {
+		audioSource.getAudioClip(0, 0).setFramePosition(0);
+		audioSource.getAudioClip(0, 0).loop(-1);
+		pause.set(false);
+	}
+	
+	public AtomicBoolean isPaused() {
+		return pause;
+	}
+	
+	public AtomicBoolean changeGun() {
+		return changeGun;
 	}
 	
 	public String getPlayerName() {
@@ -114,104 +303,109 @@ public class GameLevel extends Level{
 	public void tick(float deltaTime) {
 		//discuss implementation
 		
-		if(gameOver == false) {
+		if(!gameOver && !pause.get()) {
+			if (player.getLives() == 0) {
+				gameOver = true;
+				return;
+			}
+			
 			updatePositions();
-			generateZombies();
-			detectHits();
+			increasePlayerHealth();
+			
+			if(!incrementRound && zombiesSpawnOnRound < maxZombies) {
+				generateZombies();
+				//detectHits(); //done in gamelevelwindow
+			}
 			
 			if(zombiesKilled >= maxZombies) {
+				incrementRound = true;
 				round++;
 				increaseDifficulty(0.1);
-				if(round % 2 == 0) {
-					if(maxZombies < 24) {
-						maxZombies++;
-					}
-				}
+				
+				if(maxZombies < 24) { maxZombies++; }
+					
+					
 				if(round % 7 == 0) {
 					maxAmmo();
+					if(maxZombiesOnScreen  < 15 && maxZombiesOnScreen <= maxZombies) {
+						maxZombiesOnScreen += 1;
+					}
 				}
 				playRoundMusic();
 				zombiesKilled = 0;
+				zombiesSpawnOnRound = 0;
 			}
 			
+			//timers
 			if(timeBetweenBullet != 0) {
 				//System.out.println("Timeatnextbullet: " + timeAtNextBullet + " \\\\ " + clock.millis()  + " \\\\ " + timeBetweenBullet   );  
 				if(clock.millis() >= timeAtNextBullet) {
 					player.setGunFired(false); 
 				}
 			}
+			if(clock.millis() >= timeAtNextPlayerDamage) { player.setHit(false); }
 			
-			if (player.getLives() == 0) {
-				gameOver = true;
-				exitGame();
-			}
 		}
-		
-		
-		
 		//can also implement methods increaseMaxObstacles and decreaseMaxPowerups here, if we choose
 	}
 	
 	public void difficultySet() {
 		//adjusting maxObstacles and maxPowerups based on game difficulty
 		//assuming 1 is easy, 2 is regular, 3 is hard, defaulting to easy
-		difficulty = game.getDifficulty();
 		
-				switch((int)difficulty) {
+				switch((int)game.getDifficulty()) {
 				case 1:
 					maxZombies = 5;
+					maxZombiesOnScreen = 5;
+					difficulty = 1;
 					break;
 					
 				case 2:
 					maxZombies = 10;
+					maxZombiesOnScreen = 5;
 					round = 10;
+					difficulty = 2;
 					break;
 					
 				case 3:
-					maxZombies = 15;
+					maxZombies = 20;
+					maxZombiesOnScreen = 10;
 					round = 20;
+					difficulty = 3;
 					break;
 					
 				default:
 					maxZombies = 5;
+					maxZombiesOnScreen = 5;
+					difficulty = 1;
 					break;
 				}	
 	}
 	
 	private void increaseDifficulty(double value) {
 		difficulty += value;
-		game.setDifficulty(difficulty);
+		if(round % 5 == 0) { game.setDifficulty(difficulty); }
+	}
+	
+	public boolean incrementingRound() {
+		return incrementRound;
 	}
 	
 	public void generateLevel() {
-		//This method should generate all the obstacles and powerups that are on the screen when the game starts, and then generateNewObstacles and generateNewPowerups should be called throughout play to continue generating sprites
-		Random rand = new Random();
-		double xcoord;
-		double ycoord;
+		//This method should generate all the obstacles and powerups that are on the screen when the game starts, and then generateNewObstacles and generateNewPowerups should be called throughout play to continue generating sprite
+		
 		upperX = game.getFrameX();
 		upperY = game.getFrameY();
 		
 		generateZombies();
-		/*
-		for(int i=0; i < maxZombies;i++) {
-		xcoord = rand.nextInt(upperXZ)+2;
-		ycoord = rand.nextInt(upperYZ)+2;
-		//FIXME need to instantiate a specific obstacle, so add method here to randomize which obstacle is instantiated
-		double randomSpeed = ThreadLocalRandom.current().nextDouble(game.getDifficulty()-0.5, game.getDifficulty() + 1);
-		Zombie tempZombie = new Zombie(game.getDifficulty(), randomSpeed * 0.7);
-		FieldPoint p1 = new FieldPoint(xcoord,ycoord, 90.0);
-		tempZombie.setLocation(p1);
-		zombies.add(tempZombie);
-	    }
-		*/
-		
 	}
 	
 	private void generateZombies() {
 		double xcoord, ycoord, angle = 90.0;
 		double boundaryOffset = 10;
-		
-		while(zombies.size() < maxZombies) {
+	
+		while(zombiesOnScreen < maxZombiesOnScreen) {
+			
 			if(ThreadLocalRandom.current().nextInt(0, 1 + 1) == 1) {
 				if(ThreadLocalRandom.current().nextInt(0, 1 + 1) == 1) { xcoord = 0; angle = 180.0; }
 				else { xcoord = upperX - boundaryOffset; angle = 0.0; }
@@ -225,36 +419,39 @@ public class GameLevel extends Level{
 			
 			double speedMultiplier = 1;
 			if(round > 8) {
-				int chanceOfMethZombie = ThreadLocalRandom.current().nextInt(0, 100 + 1); //nazis actually used meth lol
-				if(chanceOfMethZombie > 60 && 75 > chanceOfMethZombie) { //realistically should be 80% but game would be too hard haha
-					speedMultiplier = 2;
+				speedMultiplier += round/10 * difficulty;
+				if(round < 15) {
+					int chanceOfMethZombie = ThreadLocalRandom.current().nextInt(0, 100 + 1); //nazis actually used meth lol
+					if(chanceOfMethZombie > 60 && (70+(round-8)) > chanceOfMethZombie) { //realistically should be 80% but game would be too hard haha
+						speedMultiplier = 2 * difficulty;
+					}
 				}
-				else if(speedMultiplier < 2) {
-					if(round > 13) {
-						speedMultiplier += round/10;
-					}
-					else if(round > 99) {
-						speedMultiplier += round/100;
-					}
-					else {
-						speedMultiplier = 1.1;
-					}
+				if(speedMultiplier > 4.75) {
+					speedMultiplier = 4.75;
 				}
 			}
 			else if(round < 3) {
-				speedMultiplier = 0.8;
+				speedMultiplier += 0.8 * difficulty * round/10;
 			}
 			else if(round < 6) {
-				speedMultiplier = 0.9;
+				speedMultiplier += 0.9 * difficulty * round/10;
 			}
 			
-			double randomSpeed = ThreadLocalRandom.current().nextDouble(speedMultiplier * difficulty-0.7, speedMultiplier * difficulty);
-			System.out.println("Speed: " + randomSpeed);
-			Zombie tempZombie = new Zombie(game.getDifficulty(), randomSpeed * 0.7);
+			double randomSpeed = ThreadLocalRandom.current().nextDouble(speedMultiplier-0.7, speedMultiplier);
+			
+			Zombie tempZombie = new Zombie(game.getDifficulty(), randomSpeed * 0.7, totalZombies);
+			
+			if(zombiesSpawnOnRound == 0) {
+				tempZombie = new Zombie(game.getDifficulty(), 1, totalZombies);
+			}
+			
 			
 			FieldPoint p1 = new FieldPoint(xcoord, ycoord, angle);
 			tempZombie.setLocation(p1);
 			zombies.add(tempZombie);
+			totalZombies++;
+			zombiesSpawnOnRound++;
+			zombiesOnScreen++;
 		}
 	}
 	
@@ -272,7 +469,7 @@ public class GameLevel extends Level{
 			Zombie ot = itr.next();
 		    ot.findTarget(player.getLocation());
 		    tempPT = ot.getLocation();
-			if( newLocation(tempPT, ot.getSpeed()) == 0 ) {
+			if( newLocation(tempPT, ot.getSpeed(), 10) == 0 ) {
 				ot.setLocation(tempPT);
 				
 				//footStepSound
@@ -292,12 +489,15 @@ public class GameLevel extends Level{
 					ot.setFootstepTimer(true);
 				}
 				
-				//ambient & taunt sound
-				if(!ot.getPlayGrowl()) {
-					if(ot.getLocation().getDistance(player.getLocation()) < 60 && round < 12) {
+				//ambient & taunt sound	
+				if(!ot.getPlayGrowl() || (!ot.getMissHit() && ot.getLocation().getDistance(player.getLocation()) < 40)) {
+					if(!ot.getHit() && (!ot.getMissHit() && ot.getLocation().getDistance(player.getLocation()) < 40) && round < 15) {
+						playZombieAttackSound(ot);
+					}
+					else if(ot.getLocation().getDistance(player.getLocation()) < 100 && round < 8) {
 						int randomNum = ThreadLocalRandom.current().nextInt(48, 54 + 1);
 						Clip clip = audioSource.getAudioClip(2, randomNum);
-						ot.setGrowlLength(audioSource.getAudioLength(2, randomNum)); 
+						ot.setGrowlLength(audioSource.getAudioLength(2, randomNum) / 3); 
 						clip.setFramePosition(0);
 						clip.start();
 						ot.setPlayGrowl(true);
@@ -320,11 +520,11 @@ public class GameLevel extends Level{
 					}
 				}
 				else if(!ot.getGrowlTimer()) {
-					double randomNum = ThreadLocalRandom.current().nextInt(2, 5 + 1);
+					int randomNum = ThreadLocalRandom.current().nextInt(2, 5 + 1);
 					auxTimer.schedule(new TimerTask() {
 						@Override
-						public void run() { ot.setPlayGrowl(false); ot.setGrowlTimer(false); }
-						}, (long)(ot.getGrowlLength() * randomNum * 0.8 * 1000 / (ot.getSpeed())));
+						public void run() { ot.setPlayGrowl(false); ot.setGrowlTimer(false); ot.setMissHit(false); }
+						}, (long)(ot.getGrowlLength() * randomNum * 0.8 * 1000 / (ot.getSpeed() )));
 					ot.setGrowlTimer(true);
 				}
 			}
@@ -336,7 +536,7 @@ public class GameLevel extends Level{
 		while (itr3.hasNext()) {
 			Bullet lt = itr3.next();
 			tempPT = lt.getLocation();
-			if( newLocation(tempPT, lt.getSpeed()) == 0 ) { lt.setLocation(tempPT); }
+			if( newLocation(tempPT, lt.getSpeed(), 30) == 0 ) { lt.setLocation(tempPT); }
 			else { itr3.remove(); }
 		}
 	}
@@ -344,30 +544,30 @@ public class GameLevel extends Level{
 	//1 = left, 2 = top, 3 = right, 4 = bottom.
 	//5 = top/left, 6 = top/right, 7 = bottom/left, 8 = bottom/right
 	//0 = in bounds
-	private int outOfBounds(double x, double y) {
+	private int outOfBounds(double x, double y, double offset) {
 		int state = 0;
-		if(x < 0) { state = 1; }
-		else if(x > upperX) { state = 3; }
+		if(x < 0 - offset) { state = 1; }
+		else if(x > upperX + offset) { state = 3; }
 		
-		if(y < 0) {
+		if(y < 0 - offset) {
 			if(state == 1) { return 5; }
 			if(state == 3) { return 6; }
 			return 2;
 		}
-		else if(y > upperY) {
+		else if(y > upperY + offset) {
 			if(state == 1) { return 7; }
 			if(state == 3) { return 8; }
 			return 4;
 		}
-		return 0;
+		return state;
 	}
 	
 	private int outOfBounds(FieldPoint temp) {
-		return outOfBounds(temp.getX(), temp.getY());
+		return outOfBounds(temp.getX(), temp.getY(), 0);
 	}
 	
 	//return spec: refer to outOfBounds
-	private int newLocation(FieldPoint old, double speed) {
+	private int newLocation(FieldPoint old, double speed, double offset) {
 		double angle = old.getAngleView();
 		angle = Math.toRadians(angle);
 		double newX, newY;
@@ -375,7 +575,7 @@ public class GameLevel extends Level{
 		
 		newX = speed * Math.cos(angle) + old.getX();
 		newY =  speed * Math.sin(angle) + old.getY();
-		state = outOfBounds(newX, newY);
+		state = outOfBounds(newX, newY, offset);
 
 		
 		if(state == 0) {
@@ -386,63 +586,87 @@ public class GameLevel extends Level{
 	}
 	
 	
-	private void detectHits() {
-		FieldPoint Playercoord1 = new FieldPoint();
-		Playercoord1 = player.getLocation();
-		FieldPoint Playercoord2 = new FieldPoint();
-		Playercoord2.setLocation(Playercoord1.getX()+40, Playercoord1.getY()+18);
-		Iterator<Zombie> itr = zombies.iterator();
-		while (itr.hasNext()) {
-			Zombie ot = itr.next();
-			if(ot.getLocation().getX()>= Playercoord1.getX() && ot.getLocation().getY()>=Playercoord1.getY() && ot.getLocation().getX()<= Playercoord2.getX() && ot.getLocation().getY()<=Playercoord2.getY()) {
-				//tests top left corner
-				player.setCollision(true);
-		}
-			else if(ot.getLocation().getX()+20>= Playercoord1.getX() && ot.getLocation().getY()>=Playercoord1.getY() && ot.getLocation().getX()+20<= Playercoord2.getX() && ot.getLocation().getY()<=Playercoord2.getY()) {
-				//tests top right corner
-				player.setCollision(true);
-		}
-			else if(ot.getLocation().getX()>= Playercoord1.getX() && ot.getLocation().getY()+20>=Playercoord1.getY() && ot.getLocation().getX()<= Playercoord2.getX() && ot.getLocation().getY()+20<=Playercoord2.getY()) {
-				//tests bottom left corner
-				player.setCollision(true);
-		}
-			else if(ot.getLocation().getX()+20>= Playercoord1.getX() && ot.getLocation().getY()+20>=Playercoord1.getY() && ot.getLocation().getX()+20<= Playercoord2.getX() && ot.getLocation().getY()+20<=Playercoord2.getY()) {
-				//tests bottom right corner
-				player.setCollision(true);
-		}
+	public void detectHits(BufferedImage playerImage, BufferedImage zombieImage, double bulletImageX, double bulletImageY) {
+		//Temporary Objects & Iterators
+		Zombie tempZombie;
+		Bullet tempBullet;
+		Iterator<Zombie> itrZombie = zombies.iterator();
+		
+		//Locations
+		FieldPoint playerLoc = player.getLocation();
+		FieldPoint zombieLoc, bulletLoc;
+		
+		//Boundaries
+		double playerSizeX = playerImage.getWidth();
+		double playerSizeY = playerImage.getHeight();
+		double zombieSizeX = zombieImage.getWidth();
+		double zombieSizeY = zombieImage.getHeight();
+		double bulletImageDistance, zombieImageDistance, playerImageDistance;
+		
+		//Temp Variables
+		double tempDistance;
+		
+		//find zombie & bullet conditions
+		while (itrZombie.hasNext()){
+			tempZombie = itrZombie.next();
+			zombieLoc = tempZombie.getLocation();
+			zombieImageDistance = zombieLoc.findImageDistance(playerLoc, zombieSizeX/2, zombieSizeY/2);
+			playerImageDistance = playerLoc.findImageDistance(playerLoc, playerSizeX/2, playerSizeY/2);
 			
-			Iterator<Bullet> itr3 = bullets.iterator();
-			while (itr3.hasNext()) {
-			Bullet lt = itr3.next();
-			if(ot.getLocation().getX() <= lt.getLocation().getX() && ot.getLocation().getX()+20 >=lt.getLocation().getX() && ot.getLocation().getY() <= lt.getLocation().getY() && ot.getLocation().getY()+20 >=lt.getLocation().getY()) {
-				
-				ot.setHealth(ot.getHealth()-lt.getDamage());
-				itr3.remove();
-				player.addPoints(20);
-				if(ot.getHealth() <=0) {
-					player.addPoints(ot.getPoints());
-					
-					int randomNum = ThreadLocalRandom.current().nextInt(78, 88 + 1);
-					Clip clip = audioSource.getAudioClip(2, randomNum); 
-					clip.setFramePosition(0);
-					clip.start();
-					zombiesKilled++;
-					
-					try {
-						itr.remove();
+			//find if zombie can attack player
+			if(zombieLoc.getDistance(playerLoc) < zombieImageDistance + playerImageDistance - 5) {
+				if(!tempZombie.getHit()) {
+					if(player.zombieHit(tempZombie.getMeleeDamage())) {
+						return;
 					}
-					catch (IllegalStateException ex) {
-						System.out.println("ERROR: Removing zombie -> detectHits");
-						System.out.println("No error if current zombies = required zombies:");
-						System.out.println("Current zombies: " + zombies.size() + "\nRequired zombies: " + (maxZombies - 1) + "\n");
-					}
-
+					tempZombie.hitPlayer(auxTimer);
+					timeAtNextPlayerDamage = clock.millis() + 480;
+					playZombieHitSound();
+					playZombieAttackSound(null);
 				}
 			}
-			}
 			
+			Iterator<Bullet> itrBullet = bullets.iterator();
+			//find bullet conditions
+			boolean nextZombie = false;
+			while(itrBullet.hasNext() && !nextZombie) {
+				tempBullet = itrBullet.next();
+				bulletLoc = tempBullet.getLocation();
+				bulletImageDistance = tempBullet.findImageDistance(zombieLoc, bulletImageX/2, bulletImageY/2);
+				zombieImageDistance = zombieLoc.findImageDistance(bulletLoc, zombieSizeX/2, zombieSizeY/2);
+				tempDistance = bulletLoc.getDistance(zombieLoc);
+				
+				//find if bullet hits a zombie
+				if(tempDistance < (bulletImageDistance + zombieImageDistance - 5) && tempBullet.findZombie(tempZombie.getIdentifer()) == -1) {
+					player.addPoints(5);
+					//if zombie is dead
+					if(tempZombie.receivedDamage(tempBullet.getDamage())) {
+						player.addPoints(tempZombie.getPoints());
+						playZombieDeathSound();
+						zombiesKilled++;
+						zombiesOnScreen--;
+						try { 
+							itrZombie.remove(); 
+							nextZombie = true;
+						}
+						catch (IllegalStateException ex) {
+							System.out.println("ERROR: Removing zombie -> detectHits");
+							System.out.println("No error if current zombies = required zombies:");
+							System.out.println("Current zombies: " + zombies.size() + "\nRequired zombies: " + (maxZombies - 1) + "\n");
+						}
+					}
+					
+					//if bullet has no speed
+					if(tempBullet.addCollision(tempZombie.getIdentifer(), auxTimer)) {
+						try { itrBullet.remove(); }
+						catch (IllegalStateException ex) { System.out.println("ERROR: Removing bullet -> detectHits"); }
+					}
+				}
+				
+			}
 		}
 	}
+	
 	
 	//audio control
 	public void shootBullet() {
@@ -473,7 +697,7 @@ public class GameLevel extends Level{
 			}
 			else {
 				FieldPoint bulletLoc = new FieldPoint(player.getLocation().getX(), player.getLocation().getY(), player.getLookAngle());
-				if(newLocation(bulletLoc, playerGun.getBulletSpeed()) == 0) {
+				if(newLocation(bulletLoc, playerGun.getBulletSpeed(), 30) == 0) {
 					temp.setLocation(bulletLoc);
 					bullets.add(temp);
 					int tempTime = 0;
@@ -491,11 +715,12 @@ public class GameLevel extends Level{
 					
 					fireAudio.setFramePosition(0);
 					fireAudio.start();
+					//playBulletCase(playerGun.getAudioEmptyCaseIndex());
 					
 					player.setGunFired(true);
 					if(timeBetweenBullet != 0) {   
 						timeAtNextBullet = clock.millis() + timeBetweenBullet - tempTime;
-						System.out.println("Timeatnextbullet: " + timeAtNextBullet + " \\\\ " + clock.millis()  + " \\\\ " + timeBetweenBullet   );        
+						//System.out.println("Timeatnextbullet: " + timeAtNextBullet + " \\\\ " + clock.millis()  + " \\\\ " + timeBetweenBullet   );        
 					}
 				}
 			}
@@ -604,12 +829,12 @@ public class GameLevel extends Level{
 			}
 			
 			//swtichGun
-			if(switchGun) {
-				if(player.getOtherGun(false)) {
+			if(changeGun.compareAndSet(true, switchGun)) {
+				changeGun().set(false);
+				if(player.getNextGun()) {
 					setupNewGun();
 				}
 			}
-			
 			
 			//move
 			if(keyWASD == 2 || keyWASD == 7) { moveAngle = 90.0; }
@@ -625,7 +850,7 @@ public class GameLevel extends Level{
 			if(move) {
 				FieldPoint nextPoint = player.getLocation();
 				nextPoint.setAngleView(moveAngle);
-				if(newLocation(nextPoint, player.getSpeed()) == 0) {
+				if(newLocation(nextPoint, player.getSpeed(), 0) == 0) {
 					player.setLocation(nextPoint);
 					
 					if(!player.getPlayingFootstep()) {
@@ -659,7 +884,7 @@ public class GameLevel extends Level{
 			} 
 			else if(keyWASD == 5 || keyWASD == 10) {
 				FieldPoint nextPoint = player.getLocation();
-				if(newLocation(nextPoint, player.getSpeed()) == 0) {
+				if(newLocation(nextPoint, player.getSpeed(), 0) == 0) {
 					player.setLocation(nextPoint);
 					
 					if(!player.getPlayingFootstep()) {
@@ -708,12 +933,82 @@ public class GameLevel extends Level{
 			}
 		}
 	
-	private void playRoundMusic() {
-		
-	}
+
 	
 	public void maxAmmo() {
 		player.maxAmmo();
+	}
+	
+	private void increasePlayerHealth() {
+		if(player.getHealth() < player.getMaxHealth() && !player.getHit()) {
+			auxTimer.schedule(new TimerTask() {
+				@Override
+				public void run() { player.addHealth(10); }
+				}, (long)(500));
+		}
+	}
+	
+	private void playBulletCase(int index) {
+		auxTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				Clip clip = audioSource.getAudioClip(3, index); 
+				if(clip.isRunning() || clip.isActive()) {
+					clip.stop();
+					clip.flush();
+					try {
+						Thread.sleep(1);
+						if(timeAtNextBullet != 0) { timeAtNextBullet -= 4; }
+					} 
+					catch (InterruptedException e) { e.printStackTrace(); }
+				}
+				clip.setFramePosition(0);
+				clip.start();
+			}
+			}, (long)(500));
+	}
+	
+	private void playZombieDeathSound() {
+		int randomNum = ThreadLocalRandom.current().nextInt(78, 88 + 1);
+		Clip clip = audioSource.getAudioClip(2, randomNum); 
+		if(clip.isRunning() || clip.isActive()) {
+			clip.stop();
+			clip.flush();
+			try {
+				Thread.sleep(1);
+				if(timeAtNextBullet != 0) { timeAtNextBullet -= 4; }
+			} 
+			catch (InterruptedException e) { e.printStackTrace(); }
+		}
+		clip.setFramePosition(0);
+		clip.start();
+	}
+	
+	private void playZombieAttackSound(Zombie zomb) {
+		int randomAttack = ThreadLocalRandom.current().nextInt(55, 77 + 1);
+		Clip clipAttack = audioSource.getAudioClip(2, randomAttack); 
+		clipAttack.setFramePosition(0);
+		clipAttack.start();
+		
+		if(zomb != null) {
+			zomb.setGrowlLength(audioSource.getAudioLength(2, randomAttack) / 13);
+			zomb.setMissHit(true);
+			zomb.setPlayGrowl(true);
+		}
+	}
+	
+	private void playZombieHitSound() {
+		int randomHit = ThreadLocalRandom.current().nextInt(4, 6 + 1);
+		Clip clipHit = audioSource.getAudioClip(2, randomHit);
+		clipHit.setFramePosition(0);
+		clipHit.start();
+	}
+	
+	private void playRoundMusic() {
+		auxTimer.schedule(new TimerTask() {
+			@Override
+			public void run() { incrementRound = false; }
+			}, (long)(3000));
 	}
 	
 	}

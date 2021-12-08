@@ -16,6 +16,8 @@ public class Gun {
 	
 	private int currentMag;
 	private int currentBullets;
+	private int maxCollisions;
+	private int speedReductionPerCollision;
 	
 	private boolean uniAmmo;
 	
@@ -57,6 +59,8 @@ public class Gun {
 		audioDryIndex = 0;
 		gunType = -1;
 		bulletSpeed = 10;
+		maxCollisions = 1;
+		speedReductionPerCollision = 1;
 	}
 	
 	public Gun(int gunType) {
@@ -71,8 +75,10 @@ public class Gun {
 			maxMagCapacity = 8;
 			rateOfFire = -1;
 			damagePerBullet = 20;
-			bulletSpeed = 10;
+			bulletSpeed = 15;
 			name = "M1911";
+			maxCollisions = 1;
+			speedReductionPerCollision = 5;
 			
 			audioFullReloadIndex = 11;
 			audioHalfReloadIndex = 12;
@@ -89,8 +95,10 @@ public class Gun {
 			maxMags = maxBullets/maxMagCapacity;
 			rateOfFire = -1;
 			damagePerBullet = 75;
-			bulletSpeed = 17;
+			bulletSpeed = 22;
 			name = "M1 Garand";
+			maxCollisions = 4;
+			speedReductionPerCollision = 2;
 			
 			audioFullReloadIndex = 14;
 			audioHalfReloadIndex = 15;
@@ -107,8 +115,10 @@ public class Gun {
 			maxMags = maxBullets/maxMagCapacity;
 			rateOfFire = 500;
 			damagePerBullet = 25;
-			bulletSpeed = 12;
+			bulletSpeed = 19;
 			name = "MP40";
+			maxCollisions = 3;
+			speedReductionPerCollision = 2;
 			
 			audioFullReloadIndex = 36;
 			audioHalfReloadIndex = 37;
@@ -125,8 +135,10 @@ public class Gun {
 			maxMags = maxBullets/maxMagCapacity;
 			rateOfFire = 655;
 			damagePerBullet = 30;
-			bulletSpeed = 10;
+			bulletSpeed = 17;
 			name = "M1A1 Thompson";
+			maxCollisions = 3;
+			speedReductionPerCollision = 2;
 			
 			audioFullReloadIndex = 17;
 			audioHalfReloadIndex = 18;
@@ -142,9 +154,11 @@ public class Gun {
 			maxMagCapacity = 2;
 			maxMags = maxBullets/maxMagCapacity;
 			rateOfFire = -1;
-			damagePerBullet = 150;
-			bulletSpeed = 10;
+			damagePerBullet = 175;
+			bulletSpeed = 16;
 			name = "Double Barrel Shotgun";
+			maxCollisions = 10;
+			speedReductionPerCollision = 0;
 			
 			audioFullReloadIndex = 20;
 			audioHalfReloadIndex = 21;
@@ -161,8 +175,10 @@ public class Gun {
 			maxMags = maxBullets/maxMagCapacity;
 			rateOfFire = -1;
 			damagePerBullet = 100;
-			bulletSpeed = 18;
+			bulletSpeed = 23;
 			name = "K98k Mauser";
+			maxCollisions = 5;
+			speedReductionPerCollision = 2;
 			
 			audioFullReloadIndex = 23;
 			audioHalfReloadIndex = 24;
@@ -179,8 +195,10 @@ public class Gun {
 			maxMags = maxBullets/maxMagCapacity;
 			rateOfFire = 1550;
 			damagePerBullet = 75;
-			bulletSpeed = 20;
+			bulletSpeed = 21;
 			name = "MG42";
+			maxCollisions = 3;
+			speedReductionPerCollision = 2;
 			
 			audioFullReloadIndex = 26;
 			audioHalfReloadIndex = 27;
@@ -194,7 +212,7 @@ public class Gun {
 		uniAmmo = false;
 		
 		for(int i = 0; i < maxBullets; i++) {
-			Bullet temp = new Bullet(damagePerBullet, bulletSpeed);
+			Bullet temp = new Bullet(damagePerBullet, bulletSpeed, maxCollisions, speedReductionPerCollision);
 			bullets.add(temp);
 		}
 		currentBullets = maxBullets;
@@ -305,7 +323,7 @@ public class Gun {
 	public Bullet shootGun() {
 		Bullet temp;
 		if(uniAmmo) {
-			temp = new Bullet(damagePerBullet);
+			temp = new Bullet(damagePerBullet + 100, 20, 1, 1);
 			return temp;
 		}
 		
@@ -345,5 +363,9 @@ public class Gun {
 	public void sf_use_ignoreammo(int set) {
 		if(set == 0) { uniAmmo = false; }
 		else {uniAmmo = true; }
+	}
+	
+	public void clearBullets() {
+		bullets.clear();
 	}
 }

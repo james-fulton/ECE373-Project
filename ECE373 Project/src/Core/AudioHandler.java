@@ -27,8 +27,14 @@ public class AudioHandler {
 	private final float ZOMBIE_FOOTSTEP_GAIN = MASTER_GAIN *(float)0.25;
 	private final float ZOMBIE_AMBIENT_GAIN = MASTER_GAIN *(float)0.3;
 	private final float ZOMBIE_TAUNT_GAIN = MASTER_GAIN * (float)0.6;
-	private final float ZOMBIE_SPRINT_GAIN = MASTER_GAIN * (float)0.5;
+	private final float ZOMBIE_SPRINT_GAIN = MASTER_GAIN * (float)0.4;
 	private final float ZOMBIE_DEATH_GAIN = MASTER_GAIN * (float)0.5;
+	private final float ZOMBIE_ATTACK_GAIN = MASTER_GAIN * (float)1.0;
+	private final float ZOMBIE_HIT_GAIN = (float)1;
+	
+	private final float GAME_MUSIC_GAIN = MASTER_GAIN * (float)0.8;
+	
+	
 	
 	public AudioHandler() {
 		audioClips = new ArrayList<ArrayList>();
@@ -66,12 +72,13 @@ public class AudioHandler {
 		//Player footsteps: 6x
 		//Zombie noises: 89x
 		//Weapons: 32x
+		//Music: 1x
 		
 		//Gib Sounds:
 		//Interaction Sounds:
 		//Power-up Sounds:
 		//Round Start & Stop: 1x
-		//Music: TBT
+		
 		
 		
 		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -643,7 +650,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_HIT_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -673,7 +680,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_HIT_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -703,7 +710,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_HIT_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2203,7 +2210,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2233,7 +2240,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2263,7 +2270,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2293,7 +2300,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2323,7 +2330,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2353,7 +2360,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2383,7 +2390,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2413,7 +2420,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2443,7 +2450,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2473,7 +2480,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2503,7 +2510,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2533,7 +2540,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2563,7 +2570,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2593,7 +2600,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2623,7 +2630,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2653,7 +2660,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2683,7 +2690,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2713,7 +2720,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2743,7 +2750,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2773,7 +2780,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2803,7 +2810,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2833,7 +2840,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -2863,7 +2870,7 @@ public class AudioHandler {
 			//load
 			Clip clip1 = AudioSystem.getClip();
 			clip1.open(audioInputStream);
-			setVolume(PLAYER_FOOTSTEP_GAIN, clip1);
+			setVolume(ZOMBIE_ATTACK_GAIN, clip1);
 			zombieSound.add(clip1);
 			
 			//play
@@ -4078,6 +4085,63 @@ public class AudioHandler {
 		audioClips.add(weaponSounds);
 		audioLengths.add(weaponLengths);
 
+		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		//---------------------------------Music-----------------------------------
+		//
+		//Compromises of: (in order) 1 Sound
+		//1x Game Over Song
 		
+		ArrayList<Clip> musicSound = new ArrayList<Clip>();
+		ArrayList<Float> musicLength = new ArrayList<Float>();
+		
+		
+		//(1) game_over_00.wav
+		try {
+			//file search
+			Path path = FileSystems.getDefault().getPath("").toAbsolutePath();
+			File file = new File(path + "/sounds/music/game_over_00.wav");
+			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(file);
+			
+			//length
+			AudioFormat format = audioInputStream.getFormat();
+			long audioFileLength = file.length();
+			int frameSize = format.getFrameSize();
+			float frameRate = format.getFrameRate();
+			float durationInSeconds = (audioFileLength / (frameSize * frameRate));
+			musicLength.add(durationInSeconds);
+			
+			//load
+			Clip clip1 = AudioSystem.getClip();
+			clip1.open(audioInputStream);
+			setVolume(GAME_MUSIC_GAIN, clip1);
+			musicSound.add(clip1);
+			
+			//play
+			//clip1.setFramePosition(0);
+            //clip1.loop(-1);
+		}
+		catch (UnsupportedAudioFileException | IOException | LineUnavailableException ex) {
+			System.out.println("ERROR: Unable to load game_over_00.wav");
+			System.out.println(ex);
+		}
+		
+		
+		audioClips.add(musicSound);
+		audioLengths.add(musicLength);
+	}
+	
+	public void endAudio() {
+		for(int i = 0; i < audioClips.size(); i++) {
+			audioLengths.get(i).clear();
+			ArrayList<Clip> tempClips = audioClips.get(i);
+			for(int j = 0; j < tempClips.size(); j++) {
+				Clip tempClip = tempClips.get(j);
+				tempClip.stop();
+				tempClip.close(); 
+			}
+			tempClips.clear();
+		}
+		audioClips.clear();
+		audioLengths.clear();
 	}
 }

@@ -38,10 +38,15 @@ public class GameLevelWindow extends JFrame{
 	private BufferedImage bullet;
 	private BufferedImage zombie;
 	private Timer timer;
+	private boolean reset;
 
 	private int keyWASD; //move
 	private int keyArrow; //look
 	private int keyAux; //interact; switchgun|shoot|use|run|reload
+	private int keyGame; //Game modification pause|null|null|null
+	
+	private double bulletDefaultX;
+	private double bulletDefaultY;
 	
 	JLabel label;
 	private final int TIME_DELAY = 30;
@@ -50,7 +55,7 @@ public class GameLevelWindow extends JFrame{
 	{
 		super(windowTitle);
 		game = gamein;
-		game.setFrame(game.getFrameX() + 200, game.getFrameY() + 100);
+		game.setFrame(game.getFrameX(), game.getFrameY());
 		level = new GameLevel(game, "");
 		createGUI();
 		timer = new Timer(TIME_DELAY, new TimerListener());
@@ -58,11 +63,12 @@ public class GameLevelWindow extends JFrame{
 	}
 	
 	private void createGUI() {
-		JLabel background = setBackground(this, "images/background.png");
+		JLabel background = setBackground(this, "images/background/background_00.png");
 
 		keyWASD = 0b0000; //move
 	    keyArrow = 0b0000; //look
-		keyAux = 0b00000; //interact; shoot|use|null|null
+		keyAux = 0b00000; //interact
+		keyGame = 0b0000; //Game modification 
 
 		setSize(game.getFrameX(), game.getFrameY());
 		setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -77,12 +83,17 @@ public class GameLevelWindow extends JFrame{
 		
 		setVisible(true);
 		
-		try { player = ImageIO.read(new File("images/playerright.png"));}
+		try { player = ImageIO.read(new File("images/player/player_90.png"));}
 		catch (IOException e) { System.out.println("ERROR: player image not found"); }
-		try { zombie = ImageIO.read(new File("images/zombie.png")); } 
+		try { zombie = ImageIO.read(new File("images/zombie/zombie_90.png")); } 
 		catch (IOException e) { System.out.println("ERROR: zombie image not found"); }
-		try { bullet = ImageIO.read(new File("images/bulletright.png"));}
+		try {
+			bullet = ImageIO.read(new File("images/bullet/normal/bullet_270.png"));
+			bulletDefaultX = bullet.getWidth();
+			bulletDefaultY = bullet.getHeight();
+		}
 		catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
+		reset = false;
 	}
 	
 	public static JLabel setBackground(JFrame frame, String backgroundFilePath)  
@@ -117,7 +128,8 @@ public class GameLevelWindow extends JFrame{
 		while (itr.hasNext()) {
 			Zombie ot = itr.next();
 			tempPT = ot.getLocation();
-			g.drawImage(zombie, (int)Math.ceil(tempPT.getX() - zombie.getWidth()/4), (int)Math.ceil(tempPT.getY() - zombie.getHeight()/4), null);
+			loadNewZombieImage(tempPT.getAngleView());
+			g.drawImage(zombie, (int)Math.ceil(tempPT.getX() - zombie.getWidth()/2), (int)Math.ceil(tempPT.getY() - zombie.getHeight()/2), null);
 			/*g.setColor(Color.RED);
 			g.fillOval((int)tempPT.getX(), (int)tempPT.getY(), 10, 10);
 			*/
@@ -126,27 +138,224 @@ public class GameLevelWindow extends JFrame{
 		while (itr2.hasNext()) {
 			Bullet lt = itr2.next();
 			tempPT = lt.getLocation();
-			g.drawImage(bullet, (int)Math.ceil(tempPT.getX() - bullet.getWidth()/4), (int)Math.ceil(tempPT.getY() - bullet.getHeight()/4), null);
+			if(lt.getCollisions() > 0) { loadNewRedBulletImage(tempPT.getAngleView()); }
+			else { loadNewNormalBulletImage(tempPT.getAngleView()); }
 			
-			/*g.setColor(Color.RED);
-			g.fillOval((int)tempPT.getX(), (int)tempPT.getY(), 10, 10);
-			*/
+			g.drawImage(bullet, (int)Math.ceil(tempPT.getX() - bullet.getWidth()/2), (int)Math.ceil(tempPT.getY() - bullet.getHeight()/2), null);
+
+			//g.setColor(Color.RED);
+			//g.fillOval((int)tempPT.getX(), (int)tempPT.getY(), 10, 10);
+			
 	}
-	g.drawImage(player, (int)Math.ceil(level.getPlayer().getLocation().getX() - player.getWidth()/4), (int)Math.ceil(level.getPlayer().getLocation().getY() - player.getHeight()/2 ), null);	
+	loadNewPlayerImage(level.getPlayer().getLookAngle());
+	g.drawImage(player, (int)Math.ceil(level.getPlayer().getLocation().getX() - player.getWidth()/2), (int)Math.ceil(level.getPlayer().getLocation().getY() - player.getHeight()/2 ), null);	
 		
 	}
 	
-	//@Override
-    //public void keyTyped(KeyEvent e) {
-
-//        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-//            System.out.println((int)level.getPlayer().getLocation().getX());
-//        }
-//        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-//            System.out.println("Left key typed");
-//        }
-
-    //}
+	public void loadNewPlayerImage(double playerAngle) {
+		if(playerAngle < 45) {
+			try {
+				player = ImageIO.read(new File("images/player/player_0.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_0 image not found"); }
+		}
+		else if(playerAngle < 90) {
+			try {
+				player = ImageIO.read(new File("images/player/player_45.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_45 image not found"); }
+		}
+		else if(playerAngle < 135) {
+			try {
+				player = ImageIO.read(new File("images/player/player_90.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_90 image not found"); }
+		}
+		else if(playerAngle < 180) {
+			try {
+				player = ImageIO.read(new File("images/player/player_135.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_135 image not found"); }
+		}
+		else if(playerAngle < 225) {
+			try {
+				player = ImageIO.read(new File("images/player/player_180.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_180 image not found"); }
+		}
+		else if(playerAngle < 270) {
+			try {
+				player = ImageIO.read(new File("images/player/player_225.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_225 image not found"); }
+		}
+		else if(playerAngle < 315) {
+			try {
+				player = ImageIO.read(new File("images/player/player_270.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_270 image not found"); }
+		}
+		else if(playerAngle < 360) {
+			try {
+				player = ImageIO.read(new File("images/player/player_315.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: player_315 image not found"); }
+		}
+	}
+	
+	public void loadNewZombieImage(double zombieAngle) {
+		if(zombieAngle < 45) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_0.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_0 image not found"); }
+		}
+		else if(zombieAngle < 90) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_45.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_45 image not found"); }
+		}
+		else if(zombieAngle < 135) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_90.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_90 image not found"); }
+		}
+		else if(zombieAngle < 180) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_135.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_135 image not found"); }
+		}
+		else if(zombieAngle < 225) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_180.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_180 image not found"); }
+		}
+		else if(zombieAngle < 270) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_225.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_225 image not found"); }
+		}
+		else if(zombieAngle < 315) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_270.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_270 image not found"); }
+		}
+		else if(zombieAngle < 360) {
+			try {
+				zombie = ImageIO.read(new File("images/zombie/zombie_315.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: zombie_315 image not found"); }
+		}
+	}
+	
+	
+	public void loadNewNormalBulletImage(double bulletAngle) {
+		if(bulletAngle < 45) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_0.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_0 image not found"); }
+		}
+		else if(bulletAngle < 90) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_45.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_45 image not found"); }
+		}
+		else if(bulletAngle < 135) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_90.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_90 image not found"); }
+		}
+		else if(bulletAngle < 180) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_135.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_135 image not found"); }
+		}
+		else if(bulletAngle < 225) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_180.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_180 image not found"); }
+		}
+		else if(bulletAngle < 270) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_225.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_225 image not found"); }
+		}
+		else if(bulletAngle < 315) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_270.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_270 image not found"); }
+		}
+		else if(bulletAngle < 360) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/normal/bullet_315.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: normal bullet_315 image not found"); }
+		}
+	}
+	
+	public void loadNewRedBulletImage(double bulletAngle) {
+		if(bulletAngle < 45) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_0_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_0_red image not found"); }
+		}
+		else if(bulletAngle < 90) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_45_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_45_red image not found"); }
+		}
+		else if(bulletAngle < 135) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_90_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_90_red image not found"); }
+		}
+		else if(bulletAngle < 180) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_135_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_135_red image not found"); }
+		}
+		else if(bulletAngle < 225) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_180_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_180_red image not found"); }
+		}
+		else if(bulletAngle < 270) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_225_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_225_red image not found"); }
+		}
+		else if(bulletAngle < 315) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_270_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_270_red image not found"); }
+		}
+		else if(bulletAngle < 360) {
+			try {
+				bullet = ImageIO.read(new File("images/bullet/red/bullet_315_red.png"));
+			}
+			catch (IOException e) { System.out.println("ERROR: bullet_315_red image not found"); }
+		}
+	}
 	
 	private class MyKeyListener extends KeyAdapter{
 		
@@ -155,6 +364,7 @@ public class GameLevelWindow extends JFrame{
 			//keyWASD = 0b0000; //move
 			//keyArrow = 0b0000; //look
 			//keyAux = 0b00000; //interact; changeGun|shoot|use|run|reload
+			//keyGame = 0b0000; //Game Modification  pause|null|null|null
 			
 			//move
 			if(key == KeyEvent.VK_W) { keyWASD = keyWASD | 0b1000; }
@@ -163,44 +373,10 @@ public class GameLevelWindow extends JFrame{
 			if(key == KeyEvent.VK_D) { keyWASD = keyWASD | 0b0001; }
 			
 			//look
-			if(key == KeyEvent.VK_UP) 
-			{ 
-			keyArrow = keyArrow | 0b1000; 
-			try { 
-				player = ImageIO.read(new File("images/playerup.png"));}
-				catch (IOException e) { System.out.println("ERROR: player image not found");
-				}
-			try { 
-				bullet = ImageIO.read(new File("images/bulletup.png"));}
-				catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
-			}
-
-		
-		
-			if(key == KeyEvent.VK_LEFT) { 
-				keyArrow = keyArrow | 0b0100; 
-				try { player = ImageIO.read(new File("images/playerleft.png"));}
-				catch (IOException e) { System.out.println("ERROR: player image not found"); }
-				try { 
-					bullet = ImageIO.read(new File("images/bulletleft.png"));}
-					catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
-				}
-			if(key == KeyEvent.VK_DOWN) { 
-				keyArrow = keyArrow | 0b0010;
-				try { player = ImageIO.read(new File("images/playerdown.png"));}
-				catch (IOException e) { System.out.println("ERROR: player image not found"); }
-				try { 
-					bullet = ImageIO.read(new File("images/bulletdown.png"));}
-					catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
-			}
-			if(key == KeyEvent.VK_RIGHT) { 
-				keyArrow = keyArrow | 0b0001; 
-				try { player = ImageIO.read(new File("images/playerright.png"));}
-				catch (IOException e) { System.out.println("ERROR: player image not found"); }
-				try { 
-					bullet = ImageIO.read(new File("images/bulletright.png"));}
-					catch (IOException e) { System.out.println("ERROR: bullet image not found"); }
-			}
+			if(key == KeyEvent.VK_UP) { keyArrow = keyArrow | 0b1000; }
+			if(key == KeyEvent.VK_LEFT) { keyArrow = keyArrow | 0b0100; }
+			if(key == KeyEvent.VK_DOWN) { keyArrow = keyArrow | 0b0010; }
+			if(key == KeyEvent.VK_RIGHT) { keyArrow = keyArrow | 0b0001; }
 			
 			//interact
 			if(key == KeyEvent.VK_1) { keyAux = keyAux | 0b10000;}
@@ -209,7 +385,16 @@ public class GameLevelWindow extends JFrame{
 			if(key == KeyEvent.VK_SHIFT) { keyAux = keyAux | 0b00010; }
 			if(key == KeyEvent.VK_R) { keyAux = keyAux | 0b00001; }
 			
-			 //System.out.println("PMove: " + keyWASD);sw
+			//game
+			if(key == KeyEvent.VK_ESCAPE) {
+				if(level.isPaused().compareAndSet(false, true)) {
+					//keyGame = keyGame | 0b1000; 
+					//level.isPaused().set(!level.isPaused().get());
+					level.pauseGame();
+				}
+			}
+			
+			 //System.out.println("PMove: " + keyWASD);
 			 //System.out.println("PLook: " + keyArrow);
 			 //System.out.println("PInteract: " + keyAux);
 		}
@@ -231,29 +416,50 @@ public class GameLevelWindow extends JFrame{
 			if(key == KeyEvent.VK_RIGHT) { keyArrow = keyArrow & 0b1110; }
 				
 			//interact
-			if(key == KeyEvent.VK_1) { keyAux = keyAux & 0b01111; }
+			if(key == KeyEvent.VK_1) {
+				keyAux = keyAux & 0b01111;
+				level.changeGun().set(true);
+			}
 			if(key == KeyEvent.VK_SPACE) { keyAux = keyAux & 0b10111; }
 			if(key == KeyEvent.VK_F) { keyAux = keyAux & 0b11011; }
 			if(key == KeyEvent.VK_SHIFT) { keyAux = keyAux & 0b11101; }
 			if(key == KeyEvent.VK_R) { keyAux = keyAux & 0b11110; }
 			
+			//game
+			if(key == KeyEvent.VK_ESCAPE) { keyGame = keyGame & 0b0111; }
 		 }
 	}
 
 	
     private class TimerListener implements ActionListener {
     	public void actionPerformed(ActionEvent e){
+    		if(reset) { return; }
     		level.tick(1);
-    		level.updatePlayer(keyWASD, keyArrow, keyAux);
+    		if(!level.isGameOver()) {
+    			if(!level.isPaused().get()) {
+    				level.updatePlayer(keyWASD, keyArrow, keyAux);
+    				level.detectHits(player, zombie, bulletDefaultX, bulletDefaultY);
+    				
+    				
+    	    		label.setText("<HTML><p style=\"color:white\">Lives: " + level.getPlayer().getLives() +
+    	    				"<BR>Score: " + level.getPlayer().getPoints() +
+    	    				"<BR>Gun: " + level.getPlayer().getGunName() +
+    	    				"<BR>Bullets: " + level.getPlayer().getDisplayBullets() + "  |  Mag: " + level.getPlayer().getCurrentMag() +
+    	    				"<BR>Round: " + level.getRound() +
+    	    				"<BR>Health: " + level.getPlayer().getHealth() +
+    	    				"</HTML></p>");
+    	    		
+    	    		repaint();
+    			}
+    		}
+    		else {
+    			label.setText("");
+				level.exitGame();
+				reset = true;
+				game.endGame();
+    		}
 	    	//Force a call to the paint method.
-	    	repaint();
-	        
-	    	label.setText("<HTML><p style=\"color:white\">Lives: " + level.getPlayer().getLives() +
-					"<BR>Score: " + level.getPlayer().getPoints() +
-					"<BR>Gun: " + level.getPlayer().getGunName() +
-					"<BR>Bullets: " + level.getPlayer().getCurrentBullets() + "  |  Mag: " + level.getPlayer().getCurrentMag() +
-					"<BR>Level: " + level.getRound() +
-	    			"</HTML></p>");
+
 	    }
 	}
 }

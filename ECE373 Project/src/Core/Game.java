@@ -17,6 +17,7 @@ public class Game{
 	private double difficulty;
 	private int score; 
 	private ArrayList<HighScore> highScores;
+	private GameLevelWindow window;
 	
 	private static JFrame frame; 
 	private static JPanel panel;
@@ -30,8 +31,8 @@ public class Game{
 	
 	
 	public Game() {
-		frameX = 600;
-		frameY = 450; 
+		frameX = 800;
+		frameY = 550; 
 		difficulty = 1;
 		score = 0; 
 		highScores = new ArrayList<HighScore>();
@@ -41,7 +42,6 @@ public class Game{
 		GridLayout layout = new GridLayout(0,1);
 		panel = new JPanel();
 		panel.setLayout(layout);
-		
 		play = new JButton("Play");
 		diff = new JButton("Difficulty");
 		scores = new JButton("High Scores");
@@ -75,28 +75,28 @@ public class Game{
 		
 		frame.getContentPane().add(panel);
 		frame.pack();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(g.frameX, g.frameY);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		frame.setSize(g.frameX, g.frameY);
 		
 		
 		///////
-		HighScore hs1 = new HighScore("Person A", 50);
-		HighScore hs2 = new HighScore("Person B", 40);
-		HighScore hs3 = new HighScore("Person C", 30);
-		HighScore hs4 = new HighScore("Person D", 20);
-		HighScore hs5 = new HighScore("Person E", 10);
+		HighScore hs1 = new HighScore("Jim", 23, 13605, 325);
+		//HighScore hs2 = new HighScore("Person B", 40);
+		//HighScore hs3 = new HighScore("Person C", 30);
+		//HighScore hs4 = new HighScore("Person D", 20);
+		//HighScore hs5 = new HighScore("Person E", 10);
 		
 		////////
 		
 		g.getHighScores().add(hs1);
-		g.getHighScores().add(hs2);
-		g.getHighScores().add(hs3);
-		g.getHighScores().add(hs4);
-		g.getHighScores().add(hs5);
+		//g.getHighScores().add(hs2);
+		//g.getHighScores().add(hs3);
+		//g.getHighScores().add(hs4);
+		//g.getHighScores().add(hs5);
 		
 	}
 	
@@ -108,8 +108,7 @@ public class Game{
 				handleDifficulty();
 			}
 			else if(e.getSource() == play) {
-				GameLevelWindow window = new GameLevelWindow("Zombies", getGame());
-				
+				window = new GameLevelWindow("Zombies", getGame());
 			}
 			else if(e.getSource() == scores) {
 				handleScores();
@@ -150,18 +149,7 @@ public class Game{
 		}
 		private void handleTutorial() {
 			JFrame Tutorial =  new JFrame("Tutorial");
-			JLabel test = new JLabel("<html><body>Press W - Move up<br>"
-					+ "Press A - Move right"
-					+ "<br>Press A - Move left"
-					+ "<br>Press D - Move right"
-					+ "<br>Press S - Move down"
-					+ "<br>Arrow Key Up - Change direction up"
-					+ "<br>Arrow Key Left - Change direction left"
-					+ "<br>Arrow Key Right - Change direction right"
-					+ "<br>Arrow Key Down - Change direction down"
-					+ "<br>Press Spacebar to fire gun"
-					+ "<br>Press R to reload your gun"
-					+ "<br>Press 1 to change gun<html>");
+			JLabel test = new JLabel("Here are the tutorial instructions");
 			JPanel p = new JPanel();
 			p.add(test);
 			Tutorial.add(p);
@@ -176,6 +164,63 @@ public class Game{
 	
 	public JFrame getFrame() {
 		return Game.frame;
+	}
+	
+	public void endGame() {
+		window.dispose();
+	}
+	
+	public String scoreToString(int newHighScore, int newRounds, int newPoints, int newKills ) {
+		String finalString = "";
+		for(int i = highScores.size()-1; i >= 0; i--) {
+			if(i != highScores.size()-1) { finalString += "\n"; }
+			if(newHighScore <= 0 && i == 0 && highScores.size() < 5) {
+				finalString += Integer.toString(highScores.size() - i) + ": " + highScores.get(i).toString() + "\n";
+				finalString += Integer.toString(highScores.size() + 1) + ": Your Name | Points: " + Integer.toString(newPoints) + " | Rounds: " + Integer.toString(newRounds) + " | Kills: " + Integer.toString(newKills);
+			}
+			else if (i == 0 && highScores.size() == 5 && newHighScore > 0){ }
+			else if (i == newHighScore || (highScores.size() < 5 && i+1 == highScores.size() && highScores.size() == newHighScore)) {
+				if(highScores.size() < 5 && i+1 == highScores.size() && highScores.size() == newHighScore) {
+					finalString += Integer.toString(highScores.size()) + ": Your Name | Points: " + Integer.toString(newPoints) + " | Rounds: " + Integer.toString(newRounds) + " | Kills: " + Integer.toString(newKills) + "\n";
+					finalString += Integer.toString(highScores.size() - i - 1) + ": " + highScores.get(i).toString();
+				}
+				else if (highScores.size() < 5){
+					finalString += Integer.toString(highScores.size() - i) + ": " + highScores.get(i).toString() + "\n";
+					finalString += Integer.toString(highScores.size() - i + 1) + ": Your Name | Points: " + Integer.toString(newPoints) + " | Rounds: " + Integer.toString(newRounds) + " | Kills: " + Integer.toString(newKills);
+				}
+				else {
+					finalString += Integer.toString(highScores.size() - i) + ": Your Name | Points: " + Integer.toString(newPoints) + " | Rounds: " + Integer.toString(newRounds) + " | Kills: " + Integer.toString(newKills);
+				}
+			}
+			else {
+				if(i > newHighScore) {
+					finalString += Integer.toString(highScores.size() - i) + ": " + highScores.get(i).toString();
+				}
+				else if (i < newHighScore) {
+					if(highScores.size() < 5){
+						finalString += Integer.toString(highScores.size() - i + 1) + ": "  + highScores.get(i).toString();
+					}
+					else {
+						finalString += Integer.toString(highScores.size() - i + 1) + ": " +  highScores.get(i).toString();
+					}
+
+				}
+				
+			}
+		}
+		return finalString;
+	}
+	
+	public int isHighScore(int newRounds, int newPoints, int newKills) {
+		int highestSpot = 0;
+		int scoreState = -1;
+		for(int i = 0; i < highScores.size(); i++) {
+			scoreState = highScores.get(i).compareScores(newRounds, newPoints, newKills);
+			if(scoreState > 0) {
+				highestSpot = i + 1;
+			}
+		}
+		return highestSpot;
 	}
 	
 	public void printScores() {		

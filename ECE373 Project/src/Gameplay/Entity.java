@@ -7,6 +7,7 @@ public class Entity {
 	protected FieldPoint location;
 	protected double speed;
 	protected Integer health;
+	protected Integer maxHealth;
 	protected Integer meleeDamage;
 	protected Integer points;
 	protected boolean collision;
@@ -20,7 +21,8 @@ public class Entity {
 	public Entity() {
 		speed = 1;
 		health = 100;
-		meleeDamage = 50;
+		maxHealth = 100;
+		meleeDamage = 100;
 		points = 0;
 		collision = false;
 		location = new FieldPoint();
@@ -76,6 +78,9 @@ public class Entity {
 	public Integer getHealth() {
 		return health;
 	}
+	public Integer getMaxHealth() {
+		return maxHealth;
+	}
 	public void setHealth(Integer health) {
 		this.health = health;
 	}
@@ -93,5 +98,7 @@ public class Entity {
 	}
 	
 	//Body
-	
+	public double findDistance(FieldPoint target, double xMax, double yMax) {
+		return location.findImageDistance(target, xMax, yMax);
+	}
 }
