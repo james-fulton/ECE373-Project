@@ -179,6 +179,7 @@ public class GameLevel extends Level{
 					String[] funnyButtons = { "Yes", "Yes" };
 					int funnyOption = JOptionPane.showOptionDialog(null, "You are having fun", "Game Paused", 
 							JOptionPane.ERROR_MESSAGE, JOptionPane.ERROR_MESSAGE, null, funnyButtons, null);
+					difficulty += 3;
 					resumeGame();
 					break;
 				}
@@ -234,8 +235,25 @@ public class GameLevel extends Level{
 			if(newCommand.getText().equals("sf_use_ignoreammo 0")) { player.sf_use_ignoreammo(0); resumeGame(); return; }
 			else if(newCommand.getText().equals("sf_use_ignoreammo 1")) { player.sf_use_ignoreammo(1); resumeGame(); return; }
 			else if(newCommand.getText().equals("god")) { player.godMode(); resumeGame(); return; }
-			else if(newCommand.getText().equals("setspeed 8.0")) { player.setSpeed(8.0); resumeGame(); return; }
+			else if(newCommand.getText().equals("setspeed 8.0")) { player.setMaxSpeed(8.0); resumeGame(); return; }
 			else if(newCommand.getText().equals("give all")) {player.giveAll(); setupNewGun(); resumeGame(); return; }
+			else if(newCommand.getText().equals("activate cheats") || (newCommand.getText().equals("cheats"))){
+				String[] diffButtons = { "BRUH", "BRUH"};
+				int difOption = JOptionPane.showOptionDialog(null, "Bruh .... it ain't that easy", "CHEATER", 
+						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, diffButtons, null);
+				difOption = ThreadLocalRandom.current().nextInt(0, 1 + 1);
+				if(difOption == 0 ) { 
+					JOptionPane.showMessageDialog(null, "hehehehe no present for you", "Terminal", JOptionPane.INFORMATION_MESSAGE);
+					gameOver = true;
+					return; 
+				}
+				else if(difOption == 1) {
+					player.setMaxSpeed(5.0);
+					JOptionPane.showMessageDialog(null, "Enjoy your present", "Terminal", JOptionPane.INFORMATION_MESSAGE);
+					resumeGame(); 
+					return; 
+				}
+			}
 			else if(newCommand.getText().equals("help") || newCommand.getText().equals("-h") || newCommand.getText().equals("/h")) {
 				JOptionPane.showMessageDialog(null, "Hint: sf_use_ignoreammo (int state)", "Terminal", JOptionPane.INFORMATION_MESSAGE);
 				openTerminal();
