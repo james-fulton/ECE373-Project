@@ -131,7 +131,17 @@ public class Game{
 		}
 		
 		private void handleScores() {
+			String temp = "";
+			for(int i = highScores.size() - 1; i >= 0; i--) {
+				if(i != highScores.size()- 1) { temp += "\n"; }
+				temp += Integer.toString(highScores.size() - i) + ": " +  highScores.get(i).toString();
+				
+			}
+			JOptionPane.showMessageDialog(null, temp, "High Scores", JOptionPane.PLAIN_MESSAGE);
+			
+			/*
 			JFrame gameScores =  new JFrame("High Scores");
+			gameScores.setLocationRelativeTo(null);
 			gameScores.setSize(500,300);
 			gameScores.setVisible(true);
 			ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -146,15 +156,10 @@ public class Game{
 			//scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 			gameScores.add(scroll, BorderLayout.CENTER);
 			gameScores.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			*/
 		}
 		private void handleTutorial() {
-			JFrame Tutorial =  new JFrame("Tutorial");
-			JLabel test = new JLabel("Here are the tutorial instructions");
-			JPanel p = new JPanel();
-			p.add(test);
-			Tutorial.add(p);
-			Tutorial.setSize(300, 300);
-			//Tutorial.show();
+			JOptionPane.showMessageDialog(null, "Pause: Esc \nMove: WASD \nLook: Arrow Keys \nShoot: Space bar \nSwitch Weapon: 1 \nReload: R \nUse: F \nSprint: Shift", "Game Controls", JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
 	
