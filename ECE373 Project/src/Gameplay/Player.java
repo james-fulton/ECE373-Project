@@ -12,6 +12,7 @@ private boolean bulletHit;
 private ArrayList<Gun> guns;
 private int displayBullets;
 private int maxGuns;
+private double maxSpeed;
 private int selectedGun;
 private double lookAngle; //different from move angle in FieldPoint
 private boolean use;
@@ -28,6 +29,7 @@ public Player(double x, double y) {
 	super();
 	this.lives = 3;
 	this.speed = 3.0;
+	maxSpeed = 3.0;
 	this.points = 0;
 	maxGuns = 2;
 	bulletHit = false;
@@ -38,15 +40,43 @@ public Player(double x, double y) {
 	use = false;
 	lookAngle = 0.0;
 	this.guns = new ArrayList<Gun>();
-	int randomGun = ThreadLocalRandom.current().nextInt(0, 6 + 1);
-	if(randomGun == 5) { randomGun++; }
-	else if(randomGun == 2) { randomGun++; }
-	Gun firstGun = new Gun(randomGun);
-	//firstGun.sf_use_ignoreammo(1);
-	randomGun = ThreadLocalRandom.current().nextInt(0, 6 + 1);
-	if(randomGun == 5) { randomGun++; }
-	else if(randomGun == 2) { randomGun++; }
-	Gun secondGun = new Gun(randomGun);
+	int randomGun = ThreadLocalRandom.current().nextInt(0, 8 + 1);
+	int gun1 = 1, gun2 = 6;
+	if(randomGun == 0) {
+		gun1 = 0; //Colt M1911
+		gun2 = 1; //M1 Garand
+	}
+	else if(randomGun == 1) {
+		gun1 = 0; //Colt M1911
+		gun2 = 3; //M1A1 Thompson;
+	}
+	else if(randomGun == 2) {
+		gun1 = 1; //M1 Garand
+		gun2 = 3; //M1A1 Thompson;
+	}
+	else if(randomGun == 3) {
+		gun1 = 1; //M1 Garand
+		gun2 = 3; //M1A1 Thompson;
+	}
+	else if(randomGun == 4) {
+		gun1 = 1; //M1 Garand
+		gun2 = 3; //M1A1 Thompson;
+	}
+	else if(randomGun == 5) {
+		gun1 = 3; //M1A1 Thompson;
+		gun2 = 4; //Double Barrel Shotgun
+	}
+	else if(randomGun == 6) {
+		gun1 = 3; //M1A1 Thompson;
+		gun2 = 4; //Double Barrel Shotgun
+	}
+	else if(randomGun == 7) {
+		gun1 = 3; //M1A1 Thompson;
+		gun2 = 6; //MG42 "Universal machine gun" (ha no)
+	}	
+	
+	Gun firstGun = new Gun(gun1);
+	Gun secondGun = new Gun(gun2);
 	//secondGun.sf_use_ignoreammo(1);
 	guns.add(firstGun);
 	guns.add(secondGun);
@@ -117,6 +147,9 @@ public int getCurrentMag() {
 }
 public void setMaxGuns(int value) {
 	this.maxGuns = value;
+}
+public void setMaxSpeed(double maxSpeed) {
+	this.maxSpeed = maxSpeed;
 }
 
 
@@ -201,7 +234,7 @@ public void setSprint(boolean state) {
 		speed = 6.5;
 	}
 	else {
-		speed = 3.0;
+		speed = maxSpeed;
 	}
 }
 
