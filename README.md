@@ -14,7 +14,7 @@ Notes:
 
 4) Current game still in development, expect a fair amount of bugs/glitches. New features will be implemented along the way.
 
-5) To play, import the java project/source folder into a Java compiler. Will create a jar executable in a future update.
+5) To play, import the java project/source folder into a Java compiler. Will create a jar executable in a future update and/or git command line installers for fun.
 
 6) I have noticed that Java Development Kits within Linux seem to be picky about audio file formats (this includes older Linux JDKs).
    Windows XP -> 10 & MacOS seem to have no issues interestingly.
