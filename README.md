@@ -19,4 +19,4 @@ Notes:
 6) I have noticed that Java Development Kits within Linux seem to be picky about audio file formats (this includes older Linux JDKs).
    Windows XP -> 10 & MacOS seem to have no issues interestingly.
    Most of the audio files from the Cod WaW sound dump were originally in non-standard formats with very random sample rates.
-   Some of the audio files used in my game weren't corrected due to how long it takes to reformat a file. Will eventually fix; but low on list of priorities.
+   Some of the audio files used in my game weren't corrected due to how long it takes to reformat a file ... "correctly". Will eventually fix; but low on list of         priorities.
