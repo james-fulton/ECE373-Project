@@ -1,6 +1,4 @@
 # ECE373-Project
-Final Project for ECE 373 of Fall 2021:
-
 Arcade style, "Bird's Eye View", Zombie Shooter Game.
 Heavily inspired by Call of Duty World at War "Nazi Zombies" with it's fantastic atmosphere.
 
